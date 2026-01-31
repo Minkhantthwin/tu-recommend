@@ -1,0 +1,251 @@
+//Technologicl University Recommendation & Application System Schema
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum ApplicationStatus {
+  DRAFT
+  SUBMITTED
+  UNDER_REVIEW
+  ACCEPTED
+  REJECTED
+  WITHDRAWN
+}
+
+enum Gender {
+  MALE
+  FEMALE
+}
+
+enum Religion {
+  BUDDHIST
+  CHRISTIAN
+  HINDU
+  ISLAM
+  OTHER
+}
+
+enum MaritalStatus {
+  SINGLE
+  MARRIED
+}
+
+enum UserRole {
+  USER
+  ADMIN
+}
+
+// User account for authentication
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String
+  role      UserRole @default(USER)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  profile       UserProfile?
+  interests     UserInterest[]
+  matriculation MatriculationResult?
+  applications  Application[]
+}
+
+// Detailed user profile for application form
+model UserProfile {
+  id     Int    @id @default(autoincrement())
+  userId String @unique
+
+  // Personal Information (Myanmar University Application Form)
+  nameMyanmar   String // အမည် (မြန်မာ)
+  nameEnglish   String // Name (English)
+  nrc           String        @unique // နိုင်ငံသားစိစစ်ရေးကတ်ပြားအမှတ်
+  dateOfBirth   DateTime // မွေးသက္ကရာဇ်
+  gender        Gender
+  religion      Religion
+  ethnicity     String // လူမျိုး
+  nationality   String        @default("Myanmar") // နိုင်ငံသား
+  maritalStatus MaritalStatus @default(SINGLE)
+
+  // Contact Information
+  phone          String // ဖုန်းနံပါတ်
+  alternatePhone String? // အခြားဖုန်းနံပါတ်
+
+  // Permanent Address (အမြဲတမ်းနေရပ်လိပ်စာ)
+  permanentAddress  String
+  permanentTownship String
+  permanentRegion   String // တိုင်းဒေသကြီး/ပြည်နယ်
+
+  // Current Address (ယခုနေရပ်လိပ်စာ)
+  currentAddress  String?
+  currentTownship String?
+  currentRegion   String?
+
+  // Parent/Guardian Information
+  fatherName       String // အဖအမည်
+  fatherNrc        String? // အဖ နိုင်ငံသားစိစစ်ရေးကတ်ပြားအမှတ်
+  fatherOccupation String? // အဖအလုပ်အကိုင်
+  fatherPhone      String?
+
+  motherName       String // အမိအမည်
+  motherNrc        String? // အမိ နိုင်ငံသားစိစစ်ရေးကတ်ပြားအမှတ်
+  motherOccupation String? // အမိအလုပ်အကိုင်
+  motherPhone      String?
+
+  guardianName     String? // အုပ်ထိန်းသူအမည်
+  guardianRelation String? // တော်စပ်ပုံ
+  guardianPhone    String?
+  guardianAddress  String?
+
+  // Photo
+  photoUrl String? // ဓာတ်ပုံ
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Interest {
+  id   Int    @id @default(autoincrement())
+  name String @unique
+
+  users UserInterest[]
+}
+
+model UserInterest {
+  id         Int    @id @default(autoincrement())
+  userId     String
+  interestId Int
+
+  user     User     @relation(fields: [userId], references: [id])
+  interest Interest @relation(fields: [interestId], references: [id])
+
+  @@unique([userId, interestId])
+}
+
+model MatriculationResult {
+  id     Int    @id @default(autoincrement())
+  userId String @unique
+
+  // Examination Details
+  examYear       Int // စာမေးပွဲခုနှစ်
+  rollNumber     String // ခုံနံပါတ်
+  schoolName     String // အောင်မြင်ခဲ့သောကျောင်း
+  schoolTownship String // မြို့နယ်
+  schoolRegion   String // တိုင်းဒေသကြီး/ပြည်နယ်
+
+  // Subject Scores (out of 100)
+  myanmar     Int // မြန်မာစာ
+  english     Int // အင်္ဂလိပ်စာ
+  mathematics Int // သင်္ချာ
+  physics     Int // ရူပဗေဒ
+  chemistry   Int // ဓာတုဗေဒ
+  biology     Int? // ဇီဝဗေဒ (optional for non-bio students)
+
+  totalScore Int // စုစုပေါင်းအမှတ်
+  totalMarks Int @default(600) // အမှတ်ပြည့်
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model University {
+  id          Int     @id @default(autoincrement())
+  name        String
+  nameMyanmar String? // မြန်မာဘာသာအမည်
+  code        String? // University code (e.g., TU-Mandalay)
+  location    String
+  region      String? // တိုင်းဒေသကြီး/ပြည်နယ်
+
+  programs Program[]
+}
+
+model Program {
+  id           Int @id @default(autoincrement())
+  universityId Int
+
+  name        String
+  nameMyanmar String? // မြန်မာဘာသာအမည်
+  code        String? // Program code (e.g., EC, EP, ME)
+  description String?
+
+  minScore Int
+  quota    Int? // လက်ခံဦးရေ
+
+  university       University           @relation(fields: [universityId], references: [id])
+  requirements     ProgramRequirement[]
+  firstChoices     Application[]        @relation("FirstChoice")
+  secondChoices    Application[]        @relation("SecondChoice")
+  thirdChoices     Application[]        @relation("ThirdChoice")
+  acceptedPrograms Application[]        @relation("AcceptedProgram")
+}
+
+model ProgramRequirement {
+  id        Int @id @default(autoincrement())
+  programId Int
+
+  // Minimum subject scores required
+  myanmar     Int?
+  english     Int?
+  mathematics Int?
+  physics     Int?
+  chemistry   Int?
+  biology     Int?
+
+  // Minimum total score
+  minTotalScore Int?
+
+  program Program @relation(fields: [programId], references: [id])
+}
+
+model Application {
+  id     String @id @default(uuid())
+  userId String
+
+  // Application tracking
+  applicationNumber String?           @unique // လျှောက်လွှာအမှတ်
+  status            ApplicationStatus @default(DRAFT)
+
+  // Program Choices (up to 3 choices)
+  firstChoiceId  Int // ပထမဆန္ဒ
+  secondChoiceId Int? // ဒုတိယဆန္ဒ
+  thirdChoiceId  Int? // တတိယဆန္ဒ
+
+  // Accepted program (filled when application is accepted)
+  acceptedProgramId Int?
+
+  // Declaration
+  declarationAccepted Boolean   @default(false)
+  declarationDate     DateTime?
+
+  // Documents uploaded (stored in MinIO)
+  photoUrl             String? // ဓာတ်ပုံ
+  nrcFrontUrl          String? // နိုင်ငံသားကတ် (ရှေ့)
+  nrcBackUrl           String? // နိုင်ငံသားကတ် (နောက်)
+  matricCertificateUrl String? // တက္ကသိုလ်ဝင်စာမေးပွဲအောင်လက်မှတ်
+  recommendationUrl    String? // ထောက်ခံစာ
+
+  // Remarks
+  remarks         String?
+  rejectionReason String?
+
+  submittedAt DateTime?
+  reviewedAt  DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  firstChoice     Program  @relation("FirstChoice", fields: [firstChoiceId], references: [id])
+  secondChoice    Program? @relation("SecondChoice", fields: [secondChoiceId], references: [id])
+  thirdChoice     Program? @relation("ThirdChoice", fields: [thirdChoiceId], references: [id])
+  acceptedProgram Program? @relation("AcceptedProgram", fields: [acceptedProgramId], references: [id])
+
+  @@unique([userId, firstChoiceId])
+}
