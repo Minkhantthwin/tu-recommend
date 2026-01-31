@@ -1,8 +1,8 @@
-import jwt from 'jsonwebtoken';
-import bcrypt from 'bcryptjs';
-import { UserRole } from '@prisma/client';
-import { prisma } from '../../config/database';
-import { ApiError } from '../../common/utils/api-error';
+import jwt from "jsonwebtoken";
+import bcrypt from "bcryptjs";
+import { UserRole } from "@prisma/client";
+import { prisma } from "../../config/database";
+import { ApiError } from "../../common/utils/api-error";
 import {
   RegisterDto,
   LoginDto,
@@ -10,27 +10,32 @@ import {
   JwtPayload,
   AuthTokens,
   AuthResponse,
-} from './auth.types';
+} from "./auth.types";
 
 // JWT Configuration
-const JWT_SECRET = process.env.JWT_SECRET || 'your-super-secret-jwt-key';
-const JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET || 'your-super-secret-refresh-key';
+const JWT_SECRET = process.env.JWT_SECRET || "your-super-secret-jwt-key";
+const JWT_REFRESH_SECRET =
+  process.env.JWT_REFRESH_SECRET || "your-super-secret-refresh-key";
 const ACCESS_TOKEN_EXPIRY_SECONDS = 15 * 60; // 15 minutes
 const REFRESH_TOKEN_EXPIRY_SECONDS = 7 * 24 * 60 * 60; // 7 days
 
-function generateTokens(userId: string, email: string, role: UserRole): AuthTokens {
+function generateTokens(
+  userId: string,
+  email: string,
+  role: UserRole,
+): AuthTokens {
   const accessPayload: JwtPayload = {
     userId,
     email,
     role,
-    tokenType: 'access',
+    tokenType: "access",
   };
 
   const refreshPayload: JwtPayload = {
     userId,
     email,
     role,
-    tokenType: 'refresh',
+    tokenType: "refresh",
   };
 
   const accessToken = jwt.sign(accessPayload, JWT_SECRET, {
@@ -51,16 +56,16 @@ function generateTokens(userId: string, email: string, role: UserRole): AuthToke
 export function verifyAccessToken(token: string): JwtPayload {
   try {
     const payload = jwt.verify(token, JWT_SECRET) as JwtPayload;
-    if (payload.tokenType !== 'access') {
-      throw ApiError.unauthorized('Invalid token type');
+    if (payload.tokenType !== "access") {
+      throw ApiError.unauthorized("Invalid token type");
     }
     return payload;
   } catch (error) {
     if (error instanceof jwt.TokenExpiredError) {
-      throw ApiError.unauthorized('Token has expired');
+      throw ApiError.unauthorized("Token has expired");
     }
     if (error instanceof jwt.JsonWebTokenError) {
-      throw ApiError.unauthorized('Invalid token');
+      throw ApiError.unauthorized("Invalid token");
     }
     throw error;
   }
@@ -69,16 +74,16 @@ export function verifyAccessToken(token: string): JwtPayload {
 export function verifyRefreshToken(token: string): JwtPayload {
   try {
     const payload = jwt.verify(token, JWT_REFRESH_SECRET) as JwtPayload;
-    if (payload.tokenType !== 'refresh') {
-      throw ApiError.unauthorized('Invalid token type');
+    if (payload.tokenType !== "refresh") {
+      throw ApiError.unauthorized("Invalid token type");
     }
     return payload;
   } catch (error) {
     if (error instanceof jwt.TokenExpiredError) {
-      throw ApiError.unauthorized('Refresh token has expired');
+      throw ApiError.unauthorized("Refresh token has expired");
     }
     if (error instanceof jwt.JsonWebTokenError) {
-      throw ApiError.unauthorized('Invalid refresh token');
+      throw ApiError.unauthorized("Invalid refresh token");
     }
     throw error;
   }
@@ -91,7 +96,7 @@ export async function register(data: RegisterDto): Promise<AuthResponse> {
   });
 
   if (existingUser) {
-    throw ApiError.conflict('User with this email already exists');
+    throw ApiError.conflict("User with this email already exists");
   }
 
   // Hash password
@@ -103,7 +108,7 @@ export async function register(data: RegisterDto): Promise<AuthResponse> {
     data: {
       email: data.email,
       password: hashedPassword,
-      role: 'USER',
+      role: "USER",
     },
     select: {
       id: true,
@@ -132,14 +137,14 @@ export async function login(data: LoginDto): Promise<AuthResponse> {
   });
 
   if (!user) {
-    throw ApiError.unauthorized('Invalid email or password');
+    throw ApiError.unauthorized("Invalid email or password");
   }
 
   // Verify password
   const isPasswordValid = await bcrypt.compare(data.password, user.password);
 
   if (!isPasswordValid) {
-    throw ApiError.unauthorized('Invalid email or password');
+    throw ApiError.unauthorized("Invalid email or password");
   }
 
   // Generate tokens
@@ -170,7 +175,7 @@ export async function refreshTokens(refreshToken: string): Promise<AuthTokens> {
   });
 
   if (!user) {
-    throw ApiError.unauthorized('User not found');
+    throw ApiError.unauthorized("User not found");
   }
 
   // Generate new tokens
@@ -179,7 +184,7 @@ export async function refreshTokens(refreshToken: string): Promise<AuthTokens> {
 
 export async function changePassword(
   userId: string,
-  data: ChangePasswordDto
+  data: ChangePasswordDto,
 ): Promise<void> {
   // Find user
   const user = await prisma.user.findUnique({
@@ -187,14 +192,17 @@ export async function changePassword(
   });
 
   if (!user) {
-    throw ApiError.notFound('User not found');
+    throw ApiError.notFound("User not found");
   }
 
   // Verify current password
-  const isPasswordValid = await bcrypt.compare(data.currentPassword, user.password);
+  const isPasswordValid = await bcrypt.compare(
+    data.currentPassword,
+    user.password,
+  );
 
   if (!isPasswordValid) {
-    throw ApiError.badRequest('Current password is incorrect');
+    throw ApiError.badRequest("Current password is incorrect");
   }
 
   // Hash new password
@@ -222,7 +230,7 @@ export async function getMe(userId: string) {
   });
 
   if (!user) {
-    throw ApiError.notFound('User not found');
+    throw ApiError.notFound("User not found");
   }
 
   return user;
@@ -231,7 +239,7 @@ export async function getMe(userId: string) {
 // Admin-only: Create admin user
 export async function createAdminUser(
   email: string,
-  password: string
+  password: string,
 ): Promise<AuthResponse> {
   // Check if user already exists
   const existingUser = await prisma.user.findUnique({
@@ -239,7 +247,7 @@ export async function createAdminUser(
   });
 
   if (existingUser) {
-    throw ApiError.conflict('User with this email already exists');
+    throw ApiError.conflict("User with this email already exists");
   }
 
   // Hash password
@@ -251,7 +259,7 @@ export async function createAdminUser(
     data: {
       email,
       password: hashedPassword,
-      role: 'ADMIN',
+      role: "ADMIN",
     },
     select: {
       id: true,

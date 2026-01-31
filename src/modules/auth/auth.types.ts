@@ -1,4 +1,4 @@
-import { UserRole } from '@prisma/client';
+import { UserRole } from "@prisma/client";
 
 // Request DTOs
 export interface RegisterDto {
@@ -27,7 +27,7 @@ export interface JwtPayload {
   userId: string;
   email: string;
   role: UserRole;
-  tokenType: 'access' | 'refresh';
+  tokenType: "access" | "refresh";
 }
 
 // Response types

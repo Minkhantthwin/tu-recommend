@@ -1,4 +1,4 @@
-import { Response } from 'express';
+import { Response } from "express";
 
 interface ApiResponse<T> {
   success: boolean;
@@ -16,7 +16,7 @@ export function sendSuccess<T>(
   res: Response,
   data: T,
   statusCode = 200,
-  message?: string
+  message?: string,
 ): Response {
   const response: ApiResponse<T> = {
     success: true,
@@ -31,7 +31,7 @@ export function sendPaginated<T>(
   data: T[],
   page: number,
   limit: number,
-  total: number
+  total: number,
 ): Response {
   const totalPages = Math.ceil(total / limit);
   const response: ApiResponse<T[]> = {
@@ -47,7 +47,11 @@ export function sendPaginated<T>(
   return res.status(200).json(response);
 }
 
-export function sendCreated<T>(res: Response, data: T, message?: string): Response {
+export function sendCreated<T>(
+  res: Response,
+  data: T,
+  message?: string,
+): Response {
   return sendSuccess(res, data, 201, message);
 }
 

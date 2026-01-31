@@ -1,8 +1,8 @@
-import Redis from 'ioredis';
+import Redis from "ioredis";
 
 export const redis = new Redis({
-  host: process.env.REDIS_HOST || 'localhost',
-  port: parseInt(process.env.REDIS_PORT || '6379'),
+  host: process.env.REDIS_HOST || "localhost",
+  port: parseInt(process.env.REDIS_PORT || "6379"),
   password: process.env.REDIS_PASSWORD || undefined,
   maxRetriesPerRequest: 3,
   retryStrategy(times) {
@@ -11,10 +11,10 @@ export const redis = new Redis({
   },
 });
 
-redis.on('connect', () => {
-  console.log('📦 Redis client connected');
+redis.on("connect", () => {
+  console.log("📦 Redis client connected");
 });
 
-redis.on('error', (err) => {
-  console.error('❌ Redis client error:', err);
+redis.on("error", (err) => {
+  console.error("❌ Redis client error:", err);
 });

@@ -163,6 +163,12 @@ model University {
   code        String? // University code (e.g., TU-Mandalay)
   location    String
   region      String? // တိုင်းဒေသကြီး/ပြည်နယ်
+  description String? // University description
+  photoUrl    String? // Main university photo (stored in MinIO)
+  logoUrl     String? // University logo (stored in MinIO)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   programs Program[]
 }

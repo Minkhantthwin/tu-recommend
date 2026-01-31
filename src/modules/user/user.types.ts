@@ -1,4 +1,4 @@
-import { Gender, Religion, MaritalStatus } from '@prisma/client';
+import { Gender, Religion, MaritalStatus } from "@prisma/client";
 
 // User DTOs
 export interface CreateUserDto {

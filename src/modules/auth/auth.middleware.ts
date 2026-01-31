@@ -1,7 +1,7 @@
-import { Request, Response, NextFunction } from 'express';
-import { UserRole } from '@prisma/client';
-import { verifyAccessToken } from './auth.service';
-import { ApiError } from '../../common/utils/api-error';
+import { Request, Response, NextFunction } from "express";
+import { UserRole } from "@prisma/client";
+import { verifyAccessToken } from "./auth.service";
+import { ApiError } from "../../common/utils/api-error";
 
 /**
  * Middleware to authenticate JWT token
@@ -11,11 +11,11 @@ export function authenticate(req: Request, res: Response, next: NextFunction) {
   try {
     const authHeader = req.headers.authorization;
 
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      throw ApiError.unauthorized('No token provided');
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      throw ApiError.unauthorized("No token provided");
     }
 
-    const token = authHeader.split(' ')[1];
+    const token = authHeader.split(" ")[1];
     const payload = verifyAccessToken(token);
 
     req.user = payload;
@@ -32,11 +32,15 @@ export function authenticate(req: Request, res: Response, next: NextFunction) {
 export function authorize(...allowedRoles: UserRole[]) {
   return (req: Request, res: Response, next: NextFunction) => {
     if (!req.user) {
-      return next(ApiError.unauthorized('Not authenticated'));
+      return next(ApiError.unauthorized("Not authenticated"));
     }
 
     if (!allowedRoles.includes(req.user.role)) {
-      return next(ApiError.forbidden('You do not have permission to access this resource'));
+      return next(
+        ApiError.forbidden(
+          "You do not have permission to access this resource",
+        ),
+      );
     }
 
     next();
@@ -48,11 +52,11 @@ export function authorize(...allowedRoles: UserRole[]) {
  */
 export function adminOnly(req: Request, res: Response, next: NextFunction) {
   if (!req.user) {
-    return next(ApiError.unauthorized('Not authenticated'));
+    return next(ApiError.unauthorized("Not authenticated"));
   }
 
-  if (req.user.role !== 'ADMIN') {
-    return next(ApiError.forbidden('Admin access required'));
+  if (req.user.role !== "ADMIN") {
+    return next(ApiError.forbidden("Admin access required"));
   }
 
   next();
@@ -66,8 +70,8 @@ export function optionalAuth(req: Request, res: Response, next: NextFunction) {
   try {
     const authHeader = req.headers.authorization;
 
-    if (authHeader && authHeader.startsWith('Bearer ')) {
-      const token = authHeader.split(' ')[1];
+    if (authHeader && authHeader.startsWith("Bearer ")) {
+      const token = authHeader.split(" ")[1];
       const payload = verifyAccessToken(token);
       req.user = payload;
     }

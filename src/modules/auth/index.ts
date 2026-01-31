@@ -1,3 +1,3 @@
-export * from './auth.types';
-export * from './auth.middleware';
-export { default as authRoutes } from './auth.routes';
+export * from "./auth.types";
+export * from "./auth.middleware";
+export { default as authRoutes } from "./auth.routes";

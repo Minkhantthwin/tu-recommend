@@ -1,6 +1,11 @@
-import { prisma } from '../../config/database';
-import { ApiError } from '../../common/utils/api-error';
-import { CreateUserDto, UpdateUserDto, CreateUserProfileDto, UpdateUserProfileDto } from './user.types';
+import { prisma } from "../../config/database";
+import { ApiError } from "../../common/utils/api-error";
+import {
+  CreateUserDto,
+  UpdateUserDto,
+  CreateUserProfileDto,
+  UpdateUserProfileDto,
+} from "./user.types";
 
 // User select fields (without password)
 const userSelect = {
@@ -39,7 +44,7 @@ export async function getUserById(id: string) {
   });
 
   if (!user) {
-    throw ApiError.notFound('User not found');
+    throw ApiError.notFound("User not found");
   }
 
   return user;
@@ -51,7 +56,7 @@ export async function createUser(data: CreateUserDto) {
   });
 
   if (existingUser) {
-    throw ApiError.conflict('User with this email already exists');
+    throw ApiError.conflict("User with this email already exists");
   }
 
   // TODO: Hash password before storing
@@ -70,7 +75,7 @@ export async function updateUser(id: string, data: UpdateUserDto) {
   const user = await prisma.user.findUnique({ where: { id } });
 
   if (!user) {
-    throw ApiError.notFound('User not found');
+    throw ApiError.notFound("User not found");
   }
 
   if (data.email && data.email !== user.email) {
@@ -78,7 +83,7 @@ export async function updateUser(id: string, data: UpdateUserDto) {
       where: { email: data.email },
     });
     if (existingUser) {
-      throw ApiError.conflict('User with this email already exists');
+      throw ApiError.conflict("User with this email already exists");
     }
   }
 
@@ -93,7 +98,7 @@ export async function deleteUser(id: string) {
   const user = await prisma.user.findUnique({ where: { id } });
 
   if (!user) {
-    throw ApiError.notFound('User not found');
+    throw ApiError.notFound("User not found");
   }
 
   await prisma.user.delete({ where: { id } });
@@ -106,17 +111,20 @@ export async function getUserProfile(userId: string) {
   });
 
   if (!profile) {
-    throw ApiError.notFound('User profile not found');
+    throw ApiError.notFound("User profile not found");
   }
 
   return profile;
 }
 
-export async function createUserProfile(userId: string, data: CreateUserProfileDto) {
+export async function createUserProfile(
+  userId: string,
+  data: CreateUserProfileDto,
+) {
   // Check if user exists
   const user = await prisma.user.findUnique({ where: { id: userId } });
   if (!user) {
-    throw ApiError.notFound('User not found');
+    throw ApiError.notFound("User not found");
   }
 
   // Check if profile already exists
@@ -124,7 +132,7 @@ export async function createUserProfile(userId: string, data: CreateUserProfileD
     where: { userId },
   });
   if (existingProfile) {
-    throw ApiError.conflict('User profile already exists');
+    throw ApiError.conflict("User profile already exists");
   }
 
   // Check if NRC is already used
@@ -132,7 +140,7 @@ export async function createUserProfile(userId: string, data: CreateUserProfileD
     where: { nrc: data.nrc },
   });
   if (existingNrc) {
-    throw ApiError.conflict('NRC is already registered');
+    throw ApiError.conflict("NRC is already registered");
   }
 
   return prisma.userProfile.create({
@@ -145,8 +153,8 @@ export async function createUserProfile(userId: string, data: CreateUserProfileD
       gender: data.gender,
       religion: data.religion,
       ethnicity: data.ethnicity,
-      nationality: data.nationality || 'Myanmar',
-      maritalStatus: data.maritalStatus || 'SINGLE',
+      nationality: data.nationality || "Myanmar",
+      maritalStatus: data.maritalStatus || "SINGLE",
       phone: data.phone,
       alternatePhone: data.alternatePhone,
       permanentAddress: data.permanentAddress,
@@ -172,13 +180,16 @@ export async function createUserProfile(userId: string, data: CreateUserProfileD
   });
 }
 
-export async function updateUserProfile(userId: string, data: UpdateUserProfileDto) {
+export async function updateUserProfile(
+  userId: string,
+  data: UpdateUserProfileDto,
+) {
   const profile = await prisma.userProfile.findUnique({
     where: { userId },
   });
 
   if (!profile) {
-    throw ApiError.notFound('User profile not found');
+    throw ApiError.notFound("User profile not found");
   }
 
   // Check if NRC is being changed and if it's already used
@@ -187,7 +198,7 @@ export async function updateUserProfile(userId: string, data: UpdateUserProfileD
       where: { nrc: data.nrc },
     });
     if (existingNrc) {
-      throw ApiError.conflict('NRC is already registered');
+      throw ApiError.conflict("NRC is already registered");
     }
   }
 
@@ -208,7 +219,7 @@ export async function deleteUserProfile(userId: string) {
   });
 
   if (!profile) {
-    throw ApiError.notFound('User profile not found');
+    throw ApiError.notFound("User profile not found");
   }
 
   await prisma.userProfile.delete({ where: { userId } });
