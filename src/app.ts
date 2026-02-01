@@ -14,6 +14,10 @@ import { swaggerSpec } from "./config/swagger";
 import authRoutes from "./modules/auth/auth.routes";
 import userRoutes from "./modules/user/user.routes";
 import uploadRoutes from "./modules/upload/upload.routes";
+import universityRoutes from "./modules/university/university.routes";
+import interestRoutes from "./modules/interest/interest.routes";
+import recommendationRoutes from "./modules/recommendation/recommendation.routes";
+import matriculationRoutes from "./modules/metriculation/matriculation.routes";
 // Add more module routes here as needed
 
 const app = express();
@@ -71,6 +75,10 @@ app.get("/health", (req, res) => {
 app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/upload", uploadRoutes);
+app.use("/api", universityRoutes);
+app.use("/api", interestRoutes);
+app.use("/api", recommendationRoutes);
+app.use("/api", matriculationRoutes);
 // Add more module routes here
 
 // Error handling

@@ -292,6 +292,421 @@ const options: swaggerJsdoc.Options = {
             originalName: { type: "string", example: "profile-photo.jpg" },
           },
         },
+
+        // University
+        University: {
+          type: "object",
+          properties: {
+            id: { type: "integer" },
+            name: {
+              type: "string",
+              example: "Technological University (Thanlyin)",
+            },
+            nameMyanmar: {
+              type: "string",
+              example: "နည်းပညာတက္ကသိုလ် (သန်လျင်)",
+              nullable: true,
+            },
+            code: { type: "string", example: "TU-Thanlyin", nullable: true },
+            location: { type: "string", example: "Thanlyin Township" },
+            region: { type: "string", example: "Yangon", nullable: true },
+            description: { type: "string", nullable: true },
+            photoUrl: { type: "string", format: "uri", nullable: true },
+            logoUrl: { type: "string", format: "uri", nullable: true },
+            createdAt: { type: "string", format: "date-time" },
+            updatedAt: { type: "string", format: "date-time" },
+          },
+        },
+        UniversityWithPrograms: {
+          type: "object",
+          properties: {
+            id: { type: "integer" },
+            name: { type: "string" },
+            nameMyanmar: { type: "string", nullable: true },
+            code: { type: "string", nullable: true },
+            location: { type: "string" },
+            region: { type: "string", nullable: true },
+            description: { type: "string", nullable: true },
+            photoUrl: { type: "string", format: "uri", nullable: true },
+            logoUrl: { type: "string", format: "uri", nullable: true },
+            createdAt: { type: "string", format: "date-time" },
+            updatedAt: { type: "string", format: "date-time" },
+            programs: {
+              type: "array",
+              items: { $ref: "#/components/schemas/Program" },
+            },
+          },
+        },
+        CreateUniversity: {
+          type: "object",
+          required: ["name", "location"],
+          properties: {
+            name: {
+              type: "string",
+              example: "Technological University (Yangon)",
+            },
+            nameMyanmar: {
+              type: "string",
+              example: "နည်းပညာတက္ကသိုလ် (ရန်ကုန်)",
+            },
+            code: { type: "string", example: "TU-Yangon" },
+            location: { type: "string", example: "Yangon" },
+            region: { type: "string", example: "Yangon" },
+            description: { type: "string" },
+            photoUrl: { type: "string", format: "uri" },
+            logoUrl: { type: "string", format: "uri" },
+          },
+        },
+        UpdateUniversity: {
+          type: "object",
+          properties: {
+            name: { type: "string" },
+            nameMyanmar: { type: "string" },
+            code: { type: "string" },
+            location: { type: "string" },
+            region: { type: "string" },
+            description: { type: "string" },
+            photoUrl: { type: "string", format: "uri" },
+            logoUrl: { type: "string", format: "uri" },
+          },
+        },
+
+        // Program
+        Program: {
+          type: "object",
+          properties: {
+            id: { type: "integer" },
+            universityId: { type: "integer" },
+            name: {
+              type: "string",
+              example: "Electronic and Communication Engineering",
+            },
+            nameMyanmar: {
+              type: "string",
+              example: "အီလက်ထရောနစ်နှင့် ဆက်သွယ်ရေးအင်ဂျင်နီယာ",
+              nullable: true,
+            },
+            code: { type: "string", example: "EC", nullable: true },
+            description: { type: "string", nullable: true },
+            minScore: { type: "integer", example: 480 },
+            quota: { type: "integer", example: 60, nullable: true },
+          },
+        },
+        ProgramWithUniversity: {
+          type: "object",
+          properties: {
+            id: { type: "integer" },
+            universityId: { type: "integer" },
+            name: { type: "string" },
+            nameMyanmar: { type: "string", nullable: true },
+            code: { type: "string", nullable: true },
+            description: { type: "string", nullable: true },
+            minScore: { type: "integer" },
+            quota: { type: "integer", nullable: true },
+            university: { $ref: "#/components/schemas/University" },
+            requirements: {
+              type: "array",
+              items: { $ref: "#/components/schemas/ProgramRequirement" },
+            },
+          },
+        },
+        CreateProgram: {
+          type: "object",
+          required: ["universityId", "name", "minScore"],
+          properties: {
+            universityId: { type: "integer", example: 1 },
+            name: { type: "string", example: "Computer Engineering" },
+            nameMyanmar: { type: "string", example: "ကွန်ပျူတာအင်ဂျင်နီယာ" },
+            code: { type: "string", example: "CE" },
+            description: { type: "string" },
+            minScore: { type: "integer", example: 450 },
+            quota: { type: "integer", example: 50 },
+          },
+        },
+        UpdateProgram: {
+          type: "object",
+          properties: {
+            name: { type: "string" },
+            nameMyanmar: { type: "string" },
+            code: { type: "string" },
+            description: { type: "string" },
+            minScore: { type: "integer" },
+            quota: { type: "integer" },
+          },
+        },
+
+        // Program Requirement
+        ProgramRequirement: {
+          type: "object",
+          properties: {
+            id: { type: "integer" },
+            programId: { type: "integer" },
+            myanmar: { type: "integer", nullable: true },
+            english: { type: "integer", nullable: true },
+            mathematics: { type: "integer", nullable: true },
+            physics: { type: "integer", nullable: true },
+            chemistry: { type: "integer", nullable: true },
+            biology: { type: "integer", nullable: true },
+            minTotalScore: { type: "integer", nullable: true },
+          },
+        },
+        CreateProgramRequirement: {
+          type: "object",
+          required: ["programId"],
+          properties: {
+            programId: { type: "integer", example: 1 },
+            myanmar: { type: "integer", example: 50 },
+            english: { type: "integer", example: 50 },
+            mathematics: { type: "integer", example: 70 },
+            physics: { type: "integer", example: 65 },
+            chemistry: { type: "integer", example: 60 },
+            biology: { type: "integer" },
+            minTotalScore: { type: "integer", example: 450 },
+          },
+        },
+        UpdateProgramRequirement: {
+          type: "object",
+          properties: {
+            myanmar: { type: "integer" },
+            english: { type: "integer" },
+            mathematics: { type: "integer" },
+            physics: { type: "integer" },
+            chemistry: { type: "integer" },
+            biology: { type: "integer" },
+            minTotalScore: { type: "integer" },
+          },
+        },
+
+        // Matriculation Result
+        MatriculationResult: {
+          type: "object",
+          properties: {
+            id: { type: "integer" },
+            userId: { type: "string", format: "uuid" },
+            examYear: { type: "integer", example: 2025 },
+            rollNumber: { type: "string", example: "12345" },
+            schoolName: { type: "string", example: "BEHS No. 1 Yangon" },
+            schoolTownship: { type: "string", example: "Mingalar Taung Nyunt" },
+            schoolRegion: { type: "string", example: "Yangon" },
+            myanmar: { type: "integer", example: 85 },
+            english: { type: "integer", example: 78 },
+            mathematics: { type: "integer", example: 92 },
+            physics: { type: "integer", example: 88 },
+            chemistry: { type: "integer", example: 82 },
+            biology: { type: "integer", nullable: true, example: 80 },
+            totalScore: { type: "integer", example: 505 },
+            totalMarks: { type: "integer", example: 600 },
+            createdAt: { type: "string", format: "date-time" },
+            updatedAt: { type: "string", format: "date-time" },
+          },
+        },
+
+        // Pagination
+        Pagination: {
+          type: "object",
+          properties: {
+            total: { type: "integer", example: 100 },
+            page: { type: "integer", example: 1 },
+            limit: { type: "integer", example: 10 },
+            totalPages: { type: "integer", example: 10 },
+          },
+        },
+
+        // Interest
+        Interest: {
+          type: "object",
+          properties: {
+            id: { type: "integer" },
+            name: { type: "string", example: "Programming" },
+            _count: {
+              type: "object",
+              properties: {
+                users: { type: "integer", example: 5 },
+              },
+            },
+          },
+        },
+        CreateInterest: {
+          type: "object",
+          required: ["name"],
+          properties: {
+            name: { type: "string", example: "Programming" },
+          },
+        },
+        UpdateInterest: {
+          type: "object",
+          properties: {
+            name: { type: "string", example: "Software Development" },
+          },
+        },
+        AddUserInterest: {
+          type: "object",
+          required: ["interestId"],
+          properties: {
+            interestId: { type: "integer", example: 1 },
+          },
+        },
+        AddMultipleUserInterests: {
+          type: "object",
+          required: ["interestIds"],
+          properties: {
+            interestIds: {
+              type: "array",
+              items: { type: "integer" },
+              example: [1, 2, 3],
+            },
+          },
+        },
+
+        // Program Comparison
+        ProgramComparison: {
+          type: "object",
+          required: ["programIds"],
+          properties: {
+            programIds: {
+              type: "array",
+              items: { type: "integer" },
+              minItems: 2,
+              maxItems: 5,
+              example: [1, 2, 3],
+              description: "Array of 2-5 program IDs to compare",
+            },
+          },
+        },
+
+        // Matriculation
+        CreateMatriculation: {
+          type: "object",
+          required: [
+            "examYear",
+            "rollNumber",
+            "schoolName",
+            "schoolTownship",
+            "schoolRegion",
+            "myanmar",
+            "english",
+            "mathematics",
+            "physics",
+            "chemistry",
+          ],
+          properties: {
+            examYear: { type: "integer", example: 2025 },
+            rollNumber: { type: "string", example: "12345" },
+            schoolName: { type: "string", example: "BEHS No. 1 Yangon" },
+            schoolTownship: { type: "string", example: "Mingalar Taung Nyunt" },
+            schoolRegion: { type: "string", example: "Yangon" },
+            myanmar: { type: "integer", minimum: 0, maximum: 100, example: 85 },
+            english: { type: "integer", minimum: 0, maximum: 100, example: 78 },
+            mathematics: {
+              type: "integer",
+              minimum: 0,
+              maximum: 100,
+              example: 92,
+            },
+            physics: { type: "integer", minimum: 0, maximum: 100, example: 88 },
+            chemistry: {
+              type: "integer",
+              minimum: 0,
+              maximum: 100,
+              example: 82,
+            },
+            biology: {
+              type: "integer",
+              minimum: 0,
+              maximum: 100,
+              example: 80,
+              nullable: true,
+            },
+          },
+        },
+        UpdateMatriculation: {
+          type: "object",
+          properties: {
+            examYear: { type: "integer" },
+            rollNumber: { type: "string" },
+            schoolName: { type: "string" },
+            schoolTownship: { type: "string" },
+            schoolRegion: { type: "string" },
+            myanmar: { type: "integer", minimum: 0, maximum: 100 },
+            english: { type: "integer", minimum: 0, maximum: 100 },
+            mathematics: { type: "integer", minimum: 0, maximum: 100 },
+            physics: { type: "integer", minimum: 0, maximum: 100 },
+            chemistry: { type: "integer", minimum: 0, maximum: 100 },
+            biology: {
+              type: "integer",
+              minimum: 0,
+              maximum: 100,
+              nullable: true,
+            },
+          },
+        },
+        MatriculationWithUser: {
+          type: "object",
+          properties: {
+            id: { type: "integer" },
+            userId: { type: "string", format: "uuid" },
+            examYear: { type: "integer" },
+            rollNumber: { type: "string" },
+            schoolName: { type: "string" },
+            schoolTownship: { type: "string" },
+            schoolRegion: { type: "string" },
+            myanmar: { type: "integer" },
+            english: { type: "integer" },
+            mathematics: { type: "integer" },
+            physics: { type: "integer" },
+            chemistry: { type: "integer" },
+            biology: { type: "integer", nullable: true },
+            totalScore: { type: "integer" },
+            totalMarks: { type: "integer" },
+            createdAt: { type: "string", format: "date-time" },
+            updatedAt: { type: "string", format: "date-time" },
+            user: {
+              type: "object",
+              properties: {
+                id: { type: "string", format: "uuid" },
+                email: { type: "string", format: "email" },
+                profile: {
+                  type: "object",
+                  nullable: true,
+                  properties: {
+                    nameEnglish: { type: "string" },
+                    nameMyanmar: { type: "string" },
+                  },
+                },
+              },
+            },
+          },
+        },
+        MatriculationStats: {
+          type: "object",
+          properties: {
+            totalStudents: { type: "integer", example: 150 },
+            averages: {
+              type: "object",
+              properties: {
+                totalScore: { type: "integer", example: 450 },
+                myanmar: { type: "integer", example: 75 },
+                english: { type: "integer", example: 72 },
+                mathematics: { type: "integer", example: 78 },
+                physics: { type: "integer", example: 74 },
+                chemistry: { type: "integer", example: 76 },
+              },
+            },
+            highestScore: { type: "integer", example: 540 },
+            lowestScore: { type: "integer", example: 380 },
+            byRegion: {
+              type: "array",
+              items: {
+                type: "object",
+                properties: {
+                  region: { type: "string" },
+                  count: { type: "integer" },
+                  averageScore: { type: "integer" },
+                },
+              },
+            },
+          },
+        },
       },
     },
     tags: [
@@ -299,6 +714,29 @@ const options: swaggerJsdoc.Options = {
       { name: "Auth", description: "Authentication endpoints" },
       { name: "Users", description: "User management endpoints" },
       { name: "User Profile", description: "User profile endpoints" },
+      { name: "Universities", description: "University management endpoints" },
+      { name: "Programs", description: "Program management endpoints" },
+      {
+        name: "Program Requirements",
+        description: "Program requirements endpoints",
+      },
+      {
+        name: "Recommendations",
+        description: "Program recommendation endpoints",
+      },
+      { name: "Interests", description: "Interest management endpoints" },
+      {
+        name: "User Interests",
+        description: "User interests management endpoints",
+      },
+      {
+        name: "Matriculation",
+        description: "User matriculation result endpoints",
+      },
+      {
+        name: "Matriculation Admin",
+        description: "Admin matriculation management endpoints",
+      },
       {
         name: "Upload",
         description: "File upload endpoints for MinIO storage",

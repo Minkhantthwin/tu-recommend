@@ -22,6 +22,6 @@
       "@config/*": ["./config/*"]
     }
   },
-  "include": ["src/**/*"],
+  "include": ["src/**/*", "src/prisma/**/*"],
   "exclude": ["node_modules", "dist"]
 }
