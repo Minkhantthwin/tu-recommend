@@ -7,6 +7,7 @@ import {
   createUserProfileSchema,
   updateUserProfileSchema,
 } from "./user.validation";
+import { authenticate, adminOnly } from "../auth/auth.middleware";
 
 const router = Router();
 
@@ -17,8 +18,10 @@ const router = Router();
  * /api/users:
  *   get:
  *     tags: [Users]
- *     summary: Get all users
+ *     summary: Get all users (Admin only)
  *     description: Retrieve a list of all users (without passwords)
+ *     security:
+ *       - bearerAuth: []
  *     responses:
  *       200:
  *         description: List of users retrieved successfully
@@ -34,16 +37,22 @@ const router = Router();
  *                   type: array
  *                   items:
  *                     $ref: '#/components/schemas/User'
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden - Admin access required
  */
-router.get("/", userController.getUsers);
+router.get("/", authenticate, adminOnly, userController.getUsers);
 
 /**
  * @swagger
  * /api/users/{id}:
  *   get:
  *     tags: [Users]
- *     summary: Get user by ID
+ *     summary: Get user by ID (Admin only)
  *     description: Retrieve a specific user with their profile and matriculation data
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id
@@ -73,6 +82,10 @@ router.get("/", userController.getUsers);
  *                         matriculation:
  *                           type: object
  *                           nullable: true
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden - Admin access required
  *       404:
  *         description: User not found
  *         content:
@@ -80,15 +93,17 @@ router.get("/", userController.getUsers);
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-router.get("/:id", userController.getUserById);
+router.get("/:id", authenticate, adminOnly, userController.getUserById);
 
 /**
  * @swagger
  * /api/users:
  *   post:
  *     tags: [Users]
- *     summary: Create a new user
+ *     summary: Create a new user (Admin only)
  *     description: Create a new user account
+ *     security:
+ *       - bearerAuth: []
  *     requestBody:
  *       required: true
  *       content:
@@ -117,6 +132,10 @@ router.get("/:id", userController.getUserById);
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/ValidationError'
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden - Admin access required
  *       409:
  *         description: User with this email already exists
  *         content:
@@ -124,7 +143,13 @@ router.get("/:id", userController.getUserById);
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-router.post("/", validate(createUserSchema), userController.createUser);
+router.post(
+  "/",
+  authenticate,
+  adminOnly,
+  validate(createUserSchema),
+  userController.createUser,
+);
 
 /**
  * @swagger
@@ -133,6 +158,8 @@ router.post("/", validate(createUserSchema), userController.createUser);
  *     tags: [Users]
  *     summary: Update user
  *     description: Update an existing user's information
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id
@@ -160,6 +187,8 @@ router.post("/", validate(createUserSchema), userController.createUser);
  *                   example: true
  *                 data:
  *                   $ref: '#/components/schemas/User'
+ *       401:
+ *         description: Unauthorized
  *       404:
  *         description: User not found
  *         content:
@@ -173,15 +202,22 @@ router.post("/", validate(createUserSchema), userController.createUser);
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-router.put("/:id", validate(updateUserSchema), userController.updateUser);
+router.put(
+  "/:id",
+  authenticate,
+  validate(updateUserSchema),
+  userController.updateUser,
+);
 
 /**
  * @swagger
  * /api/users/{id}:
  *   delete:
  *     tags: [Users]
- *     summary: Delete user
+ *     summary: Delete user (Admin only)
  *     description: Delete a user account
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id
@@ -193,6 +229,10 @@ router.put("/:id", validate(updateUserSchema), userController.updateUser);
  *     responses:
  *       204:
  *         description: User deleted successfully
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden - Admin access required
  *       404:
  *         description: User not found
  *         content:
@@ -200,7 +240,7 @@ router.put("/:id", validate(updateUserSchema), userController.updateUser);
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-router.delete("/:id", userController.deleteUser);
+router.delete("/:id", authenticate, adminOnly, userController.deleteUser);
 
 // ==================== User Profile Routes ====================
 
@@ -211,6 +251,8 @@ router.delete("/:id", userController.deleteUser);
  *     tags: [User Profile]
  *     summary: Get user profile
  *     description: Retrieve the profile of a specific user
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id
@@ -232,6 +274,8 @@ router.delete("/:id", userController.deleteUser);
  *                   example: true
  *                 data:
  *                   $ref: '#/components/schemas/UserProfile'
+ *       401:
+ *         description: Unauthorized
  *       404:
  *         description: User profile not found
  *         content:
@@ -239,7 +283,7 @@ router.delete("/:id", userController.deleteUser);
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-router.get("/:id/profile", userController.getUserProfile);
+router.get("/:id/profile", authenticate, userController.getUserProfile);
 
 /**
  * @swagger
@@ -248,6 +292,8 @@ router.get("/:id/profile", userController.getUserProfile);
  *     tags: [User Profile]
  *     summary: Create user profile
  *     description: Create a profile for a user (Myanmar University Application Form data)
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id
@@ -284,6 +330,8 @@ router.get("/:id/profile", userController.getUserProfile);
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/ValidationError'
+ *       401:
+ *         description: Unauthorized
  *       404:
  *         description: User not found
  *         content:
@@ -299,6 +347,7 @@ router.get("/:id/profile", userController.getUserProfile);
  */
 router.post(
   "/:id/profile",
+  authenticate,
   validate(createUserProfileSchema),
   userController.createUserProfile,
 );
@@ -310,6 +359,8 @@ router.post(
  *     tags: [User Profile]
  *     summary: Update user profile
  *     description: Update an existing user profile
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id
@@ -337,6 +388,8 @@ router.post(
  *                   example: true
  *                 data:
  *                   $ref: '#/components/schemas/UserProfile'
+ *       401:
+ *         description: Unauthorized
  *       404:
  *         description: User profile not found
  *         content:
@@ -352,6 +405,7 @@ router.post(
  */
 router.put(
   "/:id/profile",
+  authenticate,
   validate(updateUserProfileSchema),
   userController.updateUserProfile,
 );
@@ -361,8 +415,10 @@ router.put(
  * /api/users/{id}/profile:
  *   delete:
  *     tags: [User Profile]
- *     summary: Delete user profile
+ *     summary: Delete user profile (Admin only)
  *     description: Delete a user's profile
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id
@@ -374,6 +430,10 @@ router.put(
  *     responses:
  *       204:
  *         description: User profile deleted successfully
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden - Admin access required
  *       404:
  *         description: User profile not found
  *         content:
@@ -381,6 +441,11 @@ router.put(
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-router.delete("/:id/profile", userController.deleteUserProfile);
+router.delete(
+  "/:id/profile",
+  authenticate,
+  adminOnly,
+  userController.deleteUserProfile,
+);
 
 export default router;
