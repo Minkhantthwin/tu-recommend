@@ -11,6 +11,7 @@ import {
 const userSelect = {
   id: true,
   email: true,
+  role: true,
   createdAt: true,
   updatedAt: true,
 };
@@ -33,7 +34,16 @@ const userFullSelect = {
 
 export async function getAllUsers() {
   return prisma.user.findMany({
-    select: userSelect,
+    select: {
+      ...userSelect,
+      profile: true,
+      matriculation: true,
+      interests: {
+        include: {
+          interest: true,
+        },
+      },
+    },
   });
 }
 
@@ -64,6 +74,7 @@ export async function createUser(data: CreateUserDto) {
     data: {
       email: data.email,
       password: data.password, // Remember to hash this!
+      role: data.role,
     },
     select: userSelect,
   });
