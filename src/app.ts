@@ -18,6 +18,7 @@ import universityRoutes from "./modules/university/university.routes";
 import interestRoutes from "./modules/interest/interest.routes";
 import recommendationRoutes from "./modules/recommendation/recommendation.routes";
 import matriculationRoutes from "./modules/metriculation/matriculation.routes";
+import applicationRoutes from "./modules/application/application.routes";
 // Add more module routes here as needed
 
 const app = express();
@@ -79,6 +80,7 @@ app.use("/api", universityRoutes);
 app.use("/api", interestRoutes);
 app.use("/api", recommendationRoutes);
 app.use("/api", matriculationRoutes);
+app.use("/api", applicationRoutes);
 // Add more module routes here
 
 // Error handling
