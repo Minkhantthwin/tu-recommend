@@ -18,6 +18,7 @@ import universityRoutes from "./modules/university/university.routes";
 import interestRoutes from "./modules/interest/interest.routes";
 import recommendationRoutes from "./modules/recommendation/recommendation.routes";
 import matriculationRoutes from "./modules/metriculation/matriculation.routes";
+import applicationRoutes from "./modules/application/application.routes";
 import adminRoutes from "./modules/admin/admin.routes";
 // Add more module routes here as needed
 
@@ -80,6 +81,7 @@ app.use("/api", universityRoutes);
 app.use("/api", interestRoutes);
 app.use("/api", recommendationRoutes);
 app.use("/api", matriculationRoutes);
+app.use("/api", applicationRoutes);
 app.use("/api/admin", adminRoutes);
 // Add more module routes here
 
