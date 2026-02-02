@@ -1,3 +1,5 @@
+import { Degree, ProgramStatus } from "@prisma/client";
+
 // University DTOs
 export interface CreateUniversityDto {
   name: string;
@@ -28,8 +30,11 @@ export interface CreateProgramDto {
   nameMyanmar?: string;
   code?: string;
   description?: string;
+  degree?: Degree;
+  status?: ProgramStatus;
   minScore: number;
   quota?: number;
+  requirements?: Omit<CreateProgramRequirementDto, "programId">;
 }
 
 export interface UpdateProgramDto {
@@ -37,8 +42,11 @@ export interface UpdateProgramDto {
   nameMyanmar?: string;
   code?: string;
   description?: string;
+  degree?: Degree;
+  status?: ProgramStatus;
   minScore?: number;
   quota?: number;
+  requirements?: UpdateProgramRequirementDto;
 }
 
 // Program Requirement DTOs
@@ -76,6 +84,7 @@ export interface ProgramQueryDto {
   universityId?: number;
   minScore?: number;
   maxScore?: number;
+  region?: string;
   page?: number;
   limit?: number;
 }

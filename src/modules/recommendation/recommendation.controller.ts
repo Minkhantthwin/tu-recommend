@@ -9,9 +9,20 @@ export const getEligiblePrograms = asyncHandler(
   async (req: Request, res: Response) => {
     const userId = req.user!.userId;
     const region = req.query.region as string | undefined;
+    const search = req.query.search as string | undefined;
+    const universityId = req.query.universityId
+      ? parseInt(req.query.universityId as string)
+      : undefined;
+    const page = req.query.page ? parseInt(req.query.page as string) : 1;
+    const limit = req.query.limit ? parseInt(req.query.limit as string) : 10;
+
     const result = await recommendationService.getEligiblePrograms(
       userId,
       region,
+      search,
+      universityId,
+      page,
+      limit,
     );
     return sendSuccess(res, result);
   },
@@ -20,7 +31,9 @@ export const getEligiblePrograms = asyncHandler(
 export const getRecommendedPrograms = asyncHandler(
   async (req: Request, res: Response) => {
     const userId = req.user!.userId;
-    const limit = req.query.limit ? parseInt(req.query.limit as string) : 10;
+    let limit = req.query.limit ? parseInt(req.query.limit as string) : 10;
+    if (isNaN(limit) || limit < 1) limit = 10;
+
     const result = await recommendationService.getRecommendedPrograms(
       userId,
       limit,
@@ -44,7 +57,9 @@ export const comparePrograms = asyncHandler(
 export const getTopPrograms = asyncHandler(
   async (req: Request, res: Response) => {
     const userId = req.user!.userId;
-    const limit = req.query.limit ? parseInt(req.query.limit as string) : 5;
+    let limit = req.query.limit ? parseInt(req.query.limit as string) : 5;
+    if (isNaN(limit) || limit < 1) limit = 5;
+
     const result = await recommendationService.getTopPrograms(userId, limit);
     return sendSuccess(res, result);
   },

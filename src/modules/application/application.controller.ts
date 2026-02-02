@@ -13,7 +13,7 @@ export const createApplication = asyncHandler(
     const userId = req.user!.userId;
     const result = await applicationService.createApplication(userId, req.body);
     return sendCreated(res, result, "Application created successfully");
-  }
+  },
 );
 
 /**
@@ -24,7 +24,7 @@ export const getMyApplications = asyncHandler(
     const userId = req.user!.userId;
     const result = await applicationService.getUserApplications(userId);
     return sendSuccess(res, result);
-  }
+  },
 );
 
 /**
@@ -36,7 +36,7 @@ export const getApplicationById = asyncHandler(
     const { id } = req.params;
     const result = await applicationService.getApplicationById(id, userId);
     return sendSuccess(res, result);
-  }
+  },
 );
 
 /**
@@ -46,9 +46,13 @@ export const updateApplication = asyncHandler(
   async (req: Request, res: Response) => {
     const userId = req.user!.userId;
     const { id } = req.params;
-    const result = await applicationService.updateApplication(id, userId, req.body);
+    const result = await applicationService.updateApplication(
+      id,
+      userId,
+      req.body,
+    );
     return sendSuccess(res, result, 200, "Application updated successfully");
-  }
+  },
 );
 
 /**
@@ -58,9 +62,13 @@ export const uploadDocuments = asyncHandler(
   async (req: Request, res: Response) => {
     const userId = req.user!.userId;
     const { id } = req.params;
-    const result = await applicationService.uploadDocuments(id, userId, req.body);
+    const result = await applicationService.uploadDocuments(
+      id,
+      userId,
+      req.body,
+    );
     return sendSuccess(res, result, 200, "Documents uploaded successfully");
-  }
+  },
 );
 
 /**
@@ -70,9 +78,13 @@ export const submitApplication = asyncHandler(
   async (req: Request, res: Response) => {
     const userId = req.user!.userId;
     const { id } = req.params;
-    const result = await applicationService.submitApplication(id, userId, req.body);
+    const result = await applicationService.submitApplication(
+      id,
+      userId,
+      req.body,
+    );
     return sendSuccess(res, result, 200, "Application submitted successfully");
-  }
+  },
 );
 
 /**
@@ -84,7 +96,7 @@ export const withdrawApplication = asyncHandler(
     const { id } = req.params;
     const result = await applicationService.withdrawApplication(id, userId);
     return sendSuccess(res, result, 200, "Application withdrawn successfully");
-  }
+  },
 );
 
 /**
@@ -96,7 +108,7 @@ export const deleteApplication = asyncHandler(
     const { id } = req.params;
     const result = await applicationService.deleteApplication(id, userId);
     return sendSuccess(res, result);
-  }
+  },
 );
 
 // ==================== Admin Application Controllers ====================
@@ -109,7 +121,9 @@ export const getAllApplications = asyncHandler(
     const filters = {
       status: req.query.status as any,
       userId: req.query.userId as string,
-      programId: req.query.programId ? parseInt(req.query.programId as string) : undefined,
+      programId: req.query.programId
+        ? parseInt(req.query.programId as string)
+        : undefined,
       universityId: req.query.universityId
         ? parseInt(req.query.universityId as string)
         : undefined,
@@ -118,7 +132,7 @@ export const getAllApplications = asyncHandler(
     };
     const result = await applicationService.getAllApplications(filters);
     return sendSuccess(res, result);
-  }
+  },
 );
 
 /**
@@ -129,7 +143,7 @@ export const getApplicationByIdAdmin = asyncHandler(
     const { id } = req.params;
     const result = await applicationService.getApplicationByIdAdmin(id);
     return sendSuccess(res, result);
-  }
+  },
 );
 
 /**
@@ -140,7 +154,7 @@ export const reviewApplication = asyncHandler(
     const { id } = req.params;
     const result = await applicationService.reviewApplication(id, req.body);
     return sendSuccess(res, result, 200, "Application reviewed successfully");
-  }
+  },
 );
 
 /**
@@ -150,5 +164,5 @@ export const getApplicationStats = asyncHandler(
   async (req: Request, res: Response) => {
     const result = await applicationService.getApplicationStats();
     return sendSuccess(res, result);
-  }
+  },
 );

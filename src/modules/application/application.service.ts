@@ -8,7 +8,6 @@ import {
   ReviewApplicationDTO,
   ApplicationFilterDTO,
 } from "./application.types";
-import { ApplicationStatus } from "@prisma/client";
 
 // Program include for queries
 const programInclude = {
@@ -38,7 +37,7 @@ const applicationInclude = {
  */
 export async function createApplication(
   userId: string,
-  data: CreateApplicationDTO
+  data: CreateApplicationDTO,
 ) {
   // Check if user has profile and matriculation
   const [profile, matriculation] = await Promise.all([
@@ -48,13 +47,13 @@ export async function createApplication(
 
   if (!profile) {
     throw ApiError.badRequest(
-      "Please complete your profile before creating an application"
+      "Please complete your profile before creating an application",
     );
   }
 
   if (!matriculation) {
     throw ApiError.badRequest(
-      "Please add your matriculation results before creating an application"
+      "Please add your matriculation results before creating an application",
     );
   }
 
@@ -68,7 +67,7 @@ export async function createApplication(
 
   if (existingDraft) {
     throw ApiError.badRequest(
-      "You already have a draft application. Please update or submit it."
+      "You already have a draft application. Please update or submit it.",
     );
   }
 
@@ -92,7 +91,7 @@ export async function createApplication(
   for (const program of programs) {
     if (matriculation.totalScore < program.minScore) {
       throw ApiError.badRequest(
-        `Your total score (${matriculation.totalScore}) is below the minimum score (${program.minScore}) required for ${program.name}`
+        `Your total score (${matriculation.totalScore}) is below the minimum score (${program.minScore}) required for ${program.name}`,
       );
     }
 
@@ -100,12 +99,12 @@ export async function createApplication(
     for (const requirement of program.requirements) {
       if (requirement.myanmar && matriculation.myanmar < requirement.myanmar) {
         throw ApiError.badRequest(
-          `Your Myanmar score does not meet the requirement for ${program.name}`
+          `Your Myanmar score does not meet the requirement for ${program.name}`,
         );
       }
       if (requirement.english && matriculation.english < requirement.english) {
         throw ApiError.badRequest(
-          `Your English score does not meet the requirement for ${program.name}`
+          `Your English score does not meet the requirement for ${program.name}`,
         );
       }
       if (
@@ -113,7 +112,7 @@ export async function createApplication(
         matriculation.mathematics < requirement.mathematics
       ) {
         throw ApiError.badRequest(
-          `Your Mathematics score does not meet the requirement for ${program.name}`
+          `Your Mathematics score does not meet the requirement for ${program.name}`,
         );
       }
     }
@@ -153,7 +152,10 @@ export async function getUserApplications(userId: string) {
 /**
  * Get application by ID
  */
-export async function getApplicationById(applicationId: string, userId: string) {
+export async function getApplicationById(
+  applicationId: string,
+  userId: string,
+) {
   const application = await prisma.application.findUnique({
     where: { id: applicationId },
     include: {
@@ -174,7 +176,9 @@ export async function getApplicationById(applicationId: string, userId: string) 
 
   // Users can only view their own applications (unless admin - handled in controller)
   if (application.userId !== userId) {
-    throw ApiError.forbidden("You do not have permission to view this application");
+    throw ApiError.forbidden(
+      "You do not have permission to view this application",
+    );
   }
 
   return application;
@@ -186,7 +190,7 @@ export async function getApplicationById(applicationId: string, userId: string) 
 export async function updateApplication(
   applicationId: string,
   userId: string,
-  data: UpdateApplicationDTO
+  data: UpdateApplicationDTO,
 ) {
   const application = await prisma.application.findUnique({
     where: { id: applicationId },
@@ -197,12 +201,14 @@ export async function updateApplication(
   }
 
   if (application.userId !== userId) {
-    throw ApiError.forbidden("You do not have permission to update this application");
+    throw ApiError.forbidden(
+      "You do not have permission to update this application",
+    );
   }
 
   if (application.status !== "DRAFT") {
     throw ApiError.badRequest(
-      "Only draft applications can be updated. Please withdraw and create a new application."
+      "Only draft applications can be updated. Please withdraw and create a new application.",
     );
   }
 
@@ -230,7 +236,7 @@ export async function updateApplication(
     for (const program of programs) {
       if (matriculation.totalScore < program.minScore) {
         throw ApiError.badRequest(
-          `Your total score (${matriculation.totalScore}) is below the minimum score (${program.minScore}) required for ${program.name}`
+          `Your total score (${matriculation.totalScore}) is below the minimum score (${program.minScore}) required for ${program.name}`,
         );
       }
     }
@@ -259,7 +265,7 @@ export async function updateApplication(
 export async function uploadDocuments(
   applicationId: string,
   userId: string,
-  data: UploadDocumentsDTO
+  data: UploadDocumentsDTO,
 ) {
   const application = await prisma.application.findUnique({
     where: { id: applicationId },
@@ -271,13 +277,13 @@ export async function uploadDocuments(
 
   if (application.userId !== userId) {
     throw ApiError.forbidden(
-      "You do not have permission to upload documents for this application"
+      "You do not have permission to upload documents for this application",
     );
   }
 
   if (application.status !== "DRAFT") {
     throw ApiError.badRequest(
-      "Documents can only be uploaded for draft applications"
+      "Documents can only be uploaded for draft applications",
     );
   }
 
@@ -306,7 +312,7 @@ export async function uploadDocuments(
 export async function submitApplication(
   applicationId: string,
   userId: string,
-  data: SubmitApplicationDTO
+  data: SubmitApplicationDTO,
 ) {
   const application = await prisma.application.findUnique({
     where: { id: applicationId },
@@ -318,7 +324,9 @@ export async function submitApplication(
   }
 
   if (application.userId !== userId) {
-    throw ApiError.forbidden("You do not have permission to submit this application");
+    throw ApiError.forbidden(
+      "You do not have permission to submit this application",
+    );
   }
 
   if (application.status !== "DRAFT") {
@@ -332,19 +340,19 @@ export async function submitApplication(
 
   if (!application.nrcFrontUrl || !application.nrcBackUrl) {
     throw ApiError.badRequest(
-      "NRC front and back photos are required before submission"
+      "NRC front and back photos are required before submission",
     );
   }
 
   if (!application.matricCertificateUrl) {
     throw ApiError.badRequest(
-      "Matriculation certificate is required before submission"
+      "Matriculation certificate is required before submission",
     );
   }
 
   if (!data.declarationAccepted) {
     throw ApiError.badRequest(
-      "You must accept the declaration to submit the application"
+      "You must accept the declaration to submit the application",
     );
   }
 
@@ -377,7 +385,10 @@ export async function submitApplication(
 /**
  * Withdraw application
  */
-export async function withdrawApplication(applicationId: string, userId: string) {
+export async function withdrawApplication(
+  applicationId: string,
+  userId: string,
+) {
   const application = await prisma.application.findUnique({
     where: { id: applicationId },
   });
@@ -388,7 +399,7 @@ export async function withdrawApplication(applicationId: string, userId: string)
 
   if (application.userId !== userId) {
     throw ApiError.forbidden(
-      "You do not have permission to withdraw this application"
+      "You do not have permission to withdraw this application",
     );
   }
 
@@ -398,7 +409,7 @@ export async function withdrawApplication(applicationId: string, userId: string)
     application.status === "WITHDRAWN"
   ) {
     throw ApiError.badRequest(
-      `Cannot withdraw an application with status: ${application.status}`
+      `Cannot withdraw an application with status: ${application.status}`,
     );
   }
 
@@ -427,7 +438,7 @@ export async function deleteApplication(applicationId: string, userId: string) {
 
   if (application.userId !== userId) {
     throw ApiError.forbidden(
-      "You do not have permission to delete this application"
+      "You do not have permission to delete this application",
     );
   }
 
@@ -448,7 +459,14 @@ export async function deleteApplication(applicationId: string, userId: string) {
  * Get all applications (Admin)
  */
 export async function getAllApplications(filters: ApplicationFilterDTO) {
-  const { status, userId, programId, universityId, page = 1, limit = 20 } = filters;
+  const {
+    status,
+    userId,
+    programId,
+    universityId,
+    page = 1,
+    limit = 20,
+  } = filters;
 
   const where: any = {};
 
@@ -542,7 +560,7 @@ export async function getApplicationByIdAdmin(applicationId: string) {
  */
 export async function reviewApplication(
   applicationId: string,
-  data: ReviewApplicationDTO
+  data: ReviewApplicationDTO,
 ) {
   const application = await prisma.application.findUnique({
     where: { id: applicationId },
@@ -555,7 +573,7 @@ export async function reviewApplication(
 
   if (application.status === "DRAFT" || application.status === "WITHDRAWN") {
     throw ApiError.badRequest(
-      `Cannot review an application with status: ${application.status}`
+      `Cannot review an application with status: ${application.status}`,
     );
   }
 
@@ -563,7 +581,7 @@ export async function reviewApplication(
   if (data.status === "ACCEPTED") {
     if (!data.acceptedProgramId) {
       throw ApiError.badRequest(
-        "Accepted program ID is required when accepting an application"
+        "Accepted program ID is required when accepting an application",
       );
     }
 
@@ -576,7 +594,7 @@ export async function reviewApplication(
 
     if (!validProgramIds.includes(data.acceptedProgramId)) {
       throw ApiError.badRequest(
-        "Accepted program must be one of the applicant's choices"
+        "Accepted program must be one of the applicant's choices",
       );
     }
   }
@@ -584,7 +602,7 @@ export async function reviewApplication(
   // Validate rejection reason if status is REJECTED
   if (data.status === "REJECTED" && !data.rejectionReason) {
     throw ApiError.badRequest(
-      "Rejection reason is required when rejecting an application"
+      "Rejection reason is required when rejecting an application",
     );
   }
 
@@ -592,7 +610,9 @@ export async function reviewApplication(
     where: { id: applicationId },
     data: {
       status: data.status,
-      ...(data.acceptedProgramId && { acceptedProgramId: data.acceptedProgramId }),
+      ...(data.acceptedProgramId && {
+        acceptedProgramId: data.acceptedProgramId,
+      }),
       ...(data.remarks && { remarks: data.remarks }),
       ...(data.rejectionReason && { rejectionReason: data.rejectionReason }),
       reviewedAt: new Date(),
@@ -687,7 +707,7 @@ export async function getApplicationStats() {
     totalApplications: Object.values(stats).reduce((a, b) => a + b, 0),
     recentApplications,
     programApplications: programApplications.sort(
-      (a, b) => b.totalApplications - a.totalApplications
+      (a, b) => b.totalApplications - a.totalApplications,
     ),
   };
 }

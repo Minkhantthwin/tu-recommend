@@ -7,6 +7,12 @@ export interface UpdateInterestDto {
   name?: string;
 }
 
+export interface InterestQueryDto {
+  page?: number;
+  limit?: number;
+  search?: string;
+}
+
 // User Interest DTOs
 export interface AddUserInterestDto {
   interestId: number;

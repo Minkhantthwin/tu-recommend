@@ -25,7 +25,14 @@ const INTEREST_PROGRAM_MAPPING: Record<string, string[]> = {
 
 // ==================== Recommendation Services ====================
 
-export async function getEligiblePrograms(userId: string, region?: string) {
+export async function getEligiblePrograms(
+  userId: string,
+  region?: string,
+  search?: string,
+  universityId?: number,
+  page: number = 1,
+  limit: number = 10,
+) {
   // Get user's matriculation result
   const matriculation = await prisma.matriculationResult.findUnique({
     where: { userId },
@@ -40,10 +47,23 @@ export async function getEligiblePrograms(userId: string, region?: string) {
   // Build program query
   const programWhere: any = {};
   if (region) {
-    programWhere.university = { region };
+    programWhere.university = { ...programWhere.university, region };
+  }
+  if (universityId) {
+    programWhere.universityId = universityId;
+  }
+  if (search) {
+    programWhere.OR = [
+      { name: { contains: search, mode: "insensitive" } },
+      { nameMyanmar: { contains: search, mode: "insensitive" } },
+      { code: { contains: search, mode: "insensitive" } },
+    ];
   }
 
   // Get all programs with requirements
+  // Note: We fetch all matching programs first, then filter by eligibility in memory
+  // This is because eligibility logic (checking specific subject scores against requirements)
+  // is complex to express purely in Prisma/SQL queries
   const programs = await prisma.program.findMany({
     where: programWhere,
     include: {
@@ -110,10 +130,20 @@ export async function getEligiblePrograms(userId: string, region?: string) {
   // Sort by match score
   programsWithScore.sort((a, b) => b.matchScore - a.matchScore);
 
+  // Apply pagination
+  const startIndex = (page - 1) * limit;
+  const endIndex = startIndex + limit;
+  const paginatedPrograms = programsWithScore.slice(startIndex, endIndex);
+
   return {
     matriculation,
-    eligiblePrograms: programsWithScore,
-    totalEligible: programsWithScore.length,
+    data: paginatedPrograms,
+    pagination: {
+      page,
+      limit,
+      total: programsWithScore.length,
+      totalPages: Math.ceil(programsWithScore.length / limit),
+    },
   };
 }
 
@@ -219,11 +249,36 @@ export async function getRecommendedPrograms(
   // Sort by combined score and limit
   recommendedPrograms.sort((a, b) => b.matchScore - a.matchScore);
 
+  // Apply diversity filter to avoid too many repetitions of the same program
+  const finalRecommendations: typeof recommendedPrograms = [];
+  const programCounts: Record<string, number> = {};
+  const skippedPrograms: typeof recommendedPrograms = [];
+  const MAX_SAME_PROGRAM_COUNT = 2;
+
+  for (const program of recommendedPrograms) {
+    if (finalRecommendations.length >= limit) break;
+
+    // Use code as primary key, fallback to name if code is missing
+    const key = program.code || program.name;
+    const count = programCounts[key] || 0;
+
+    if (count < MAX_SAME_PROGRAM_COUNT) {
+      finalRecommendations.push(program);
+      programCounts[key] = count + 1;
+    } else {
+      skippedPrograms.push(program);
+    }
+  }
+
+  // If we haven't reached the limit, fill up with skipped programs
+  while (finalRecommendations.length < limit && skippedPrograms.length > 0) {
+    finalRecommendations.push(skippedPrograms.shift()!);
+  }
+
   return {
     matriculation,
-    eligiblePrograms,
     totalEligible: eligiblePrograms.length,
-    recommendedPrograms: recommendedPrograms.slice(0, limit),
+    recommendedPrograms: finalRecommendations,
   };
 }
 
@@ -302,17 +357,51 @@ export async function comparePrograms(userId: string, programIds: number[]) {
 }
 
 export async function getProgramsByRegion(userId: string, region: string) {
-  return getEligiblePrograms(userId, region);
+  const result = await getEligiblePrograms(userId, region);
+  return result;
 }
 
 export async function getTopPrograms(userId: string, limit: number = 5) {
-  const result = await getEligiblePrograms(userId);
+  const [result, userInterests] = await Promise.all([
+    getEligiblePrograms(userId, undefined, undefined, undefined, 1, 1000), // Fetch more programs for top ranking
+    prisma.userInterest.findMany({
+      where: { userId },
+      include: { interest: true },
+    }),
+  ]);
 
-  // Return only the top N programs by match score
+  const userInterestNames = userInterests.map((ui) => ui.interest.name);
+
+  const enhancedPrograms = result.data.map((program) => {
+    // Recalculate match score to include interest score
+    // (getEligiblePrograms only calculates base score based on marks)
+    const baseMatchScore = calculateMatchScore(result.matriculation, program);
+    const interestScore = calculateInterestScore(
+      program.code,
+      userInterestNames,
+    );
+
+    const combinedScore = baseMatchScore * 0.6 + interestScore * 0.4;
+
+    const matchReasons = getMatchReasons(
+      result.matriculation,
+      program,
+      userInterestNames,
+    );
+
+    return {
+      ...program,
+      matchScore: Math.round(combinedScore),
+      matchReasons,
+    };
+  });
+
+  // Sort by combined score and limit
+  enhancedPrograms.sort((a, b) => b.matchScore - a.matchScore);
+
   return {
     matriculation: result.matriculation,
-    topPrograms: result.eligiblePrograms.slice(0, limit),
-    totalEligible: result.totalEligible,
+    topPrograms: enhancedPrograms.slice(0, limit),
   };
 }
 

@@ -5,21 +5,47 @@ import {
   UpdateInterestDto,
   AddUserInterestDto,
   AddMultipleUserInterestsDto,
+  InterestQueryDto,
 } from "./interest.types";
 
 // ==================== Interest Services ====================
 
-export async function getAllInterests() {
-  const interests = await prisma.interest.findMany({
-    orderBy: { name: "asc" },
-    include: {
-      _count: {
-        select: { users: true },
-      },
-    },
-  });
+export async function getAllInterests(query: InterestQueryDto) {
+  const { search, page = 1, limit = 10 } = query;
+  const pageNum = Number(page);
+  const limitNum = Number(limit);
+  const skip = (pageNum - 1) * limitNum;
 
-  return interests;
+  const where: any = {};
+
+  if (search) {
+    where.name = { contains: search, mode: "insensitive" };
+  }
+
+  const [interests, total] = await Promise.all([
+    prisma.interest.findMany({
+      where,
+      skip,
+      take: limitNum,
+      orderBy: { name: "asc" },
+      include: {
+        _count: {
+          select: { users: true },
+        },
+      },
+    }),
+    prisma.interest.count({ where }),
+  ]);
+
+  return {
+    data: interests,
+    pagination: {
+      page: pageNum,
+      limit: limitNum,
+      total,
+      totalPages: Math.ceil(total / limitNum),
+    },
+  };
 }
 
 export async function getInterestById(id: number) {

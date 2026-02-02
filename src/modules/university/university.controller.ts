@@ -50,7 +50,17 @@ export const deleteUniversity = asyncHandler(
 // ==================== Program Controllers ====================
 
 export const getPrograms = asyncHandler(async (req: Request, res: Response) => {
-  const result = await universityService.getAllPrograms(req.query);
+  const query = {
+    ...req.query,
+    universityId: req.query.universityId
+      ? Number(req.query.universityId)
+      : undefined,
+    minScore: req.query.minScore ? Number(req.query.minScore) : undefined,
+    maxScore: req.query.maxScore ? Number(req.query.maxScore) : undefined,
+    page: req.query.page ? Number(req.query.page) : 1,
+    limit: req.query.limit ? Number(req.query.limit) : 10,
+  };
+  const result = await universityService.getAllPrograms(query);
   return sendSuccess(res, result);
 });
 

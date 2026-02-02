@@ -32,19 +32,78 @@ const userFullSelect = {
   },
 };
 
-export async function getAllUsers() {
-  return prisma.user.findMany({
-    select: {
-      ...userSelect,
-      profile: true,
-      matriculation: true,
-      interests: {
-        include: {
-          interest: true,
+export async function getAllUsers(query: {
+  page?: number;
+  limit?: number;
+  search?: string;
+  role?: string;
+}) {
+  const { page = 1, limit = 10, search, role } = query;
+  const pageNum = Number(page);
+  const limitNum = Number(limit);
+  const skip = (pageNum - 1) * limitNum;
+
+  const where: any = {};
+
+  if (search) {
+    where.OR = [
+      { email: { contains: search, mode: "insensitive" } },
+      // Add other searchable fields if necessary
+    ];
+  }
+
+  if (role) {
+    where.role = role;
+  }
+
+  const [users, total] = await Promise.all([
+    prisma.user.findMany({
+      where,
+      skip,
+      take: limitNum,
+      orderBy: { createdAt: "desc" },
+      select: {
+        ...userSelect,
+        profile: true,
+        matriculation: true,
+        // Excluding heavy nested relations for list view optimization if needed
+        // but keeping existing behavior for now if required,
+        // though typically list views don't need deep nesting.
+        // Let's keep it somewhat lightweight but consistent with previous select if possible.
+        // Previous select was:
+        /*
+        select: {
+          ...userSelect,
+          profile: true,
+          matriculation: true,
+          interests: {
+            include: {
+              interest: true,
+            },
+          },
+        },
+        */
+        // Let's stick to the previous select structure to avoid breaking things,
+        // but adding pagination.
+        interests: {
+          include: {
+            interest: true,
+          },
         },
       },
+    }),
+    prisma.user.count({ where }),
+  ]);
+
+  return {
+    data: users,
+    pagination: {
+      page: pageNum,
+      limit: limitNum,
+      total,
+      totalPages: Math.ceil(total / limitNum),
     },
-  });
+  };
 }
 
 export async function getUserById(id: string) {

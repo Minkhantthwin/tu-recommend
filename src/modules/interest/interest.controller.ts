@@ -11,7 +11,7 @@ import { asyncHandler } from "../../common/utils/async-handler";
 
 export const getAllInterests = asyncHandler(
   async (req: Request, res: Response) => {
-    const interests = await interestService.getAllInterests();
+    const interests = await interestService.getAllInterests(req.query);
     return sendSuccess(res, interests);
   },
 );

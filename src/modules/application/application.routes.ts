@@ -59,7 +59,7 @@ router.post(
   "/applications",
   authenticate,
   validate(createApplicationSchema),
-  applicationController.createApplication
+  applicationController.createApplication,
 );
 
 /**
@@ -96,7 +96,7 @@ router.post(
 router.get(
   "/applications",
   authenticate,
-  applicationController.getMyApplications
+  applicationController.getMyApplications,
 );
 
 /**
@@ -133,8 +133,8 @@ router.get(
 router.get(
   "/applications/:id",
   authenticate,
-  validate(applicationIdSchema),
-  applicationController.getApplicationById
+  validate(applicationIdSchema, "params"),
+  applicationController.getApplicationById,
 );
 
 /**
@@ -184,8 +184,9 @@ router.get(
 router.patch(
   "/applications/:id",
   authenticate,
+  validate(applicationIdSchema, "params"),
   validate(updateApplicationSchema),
-  applicationController.updateApplication
+  applicationController.updateApplication,
 );
 
 /**
@@ -247,8 +248,9 @@ router.patch(
 router.post(
   "/applications/:id/documents",
   authenticate,
+  validate(applicationIdSchema, "params"),
   validate(uploadDocumentsSchema),
-  applicationController.uploadDocuments
+  applicationController.uploadDocuments,
 );
 
 /**
@@ -306,8 +308,9 @@ router.post(
 router.post(
   "/applications/:id/submit",
   authenticate,
+  validate(applicationIdSchema, "params"),
   validate(submitApplicationSchema),
-  applicationController.submitApplication
+  applicationController.submitApplication,
 );
 
 /**
@@ -342,8 +345,8 @@ router.post(
 router.post(
   "/applications/:id/withdraw",
   authenticate,
-  validate(applicationIdSchema),
-  applicationController.withdrawApplication
+  validate(applicationIdSchema, "params"),
+  applicationController.withdrawApplication,
 );
 
 /**
@@ -378,8 +381,8 @@ router.post(
 router.delete(
   "/applications/:id",
   authenticate,
-  validate(applicationIdSchema),
-  applicationController.deleteApplication
+  validate(applicationIdSchema, "params"),
+  applicationController.deleteApplication,
 );
 
 // ==================== Admin Application Routes ====================
@@ -462,8 +465,8 @@ router.get(
   "/admin/applications",
   authenticate,
   adminOnly,
-  validate(applicationFilterSchema),
-  applicationController.getAllApplications
+  validate(applicationFilterSchema, "query"),
+  applicationController.getAllApplications,
 );
 
 /**
@@ -537,7 +540,7 @@ router.get(
   "/admin/applications/stats",
   authenticate,
   adminOnly,
-  applicationController.getApplicationStats
+  applicationController.getApplicationStats,
 );
 
 /**
@@ -572,7 +575,7 @@ router.get(
   authenticate,
   adminOnly,
   validate(applicationIdSchema),
-  applicationController.getApplicationByIdAdmin
+  applicationController.getApplicationByIdAdmin,
 );
 
 /**
@@ -632,8 +635,9 @@ router.post(
   "/admin/applications/:id/review",
   authenticate,
   adminOnly,
+  validate(applicationIdSchema, "params"),
   validate(reviewApplicationSchema),
-  applicationController.reviewApplication
+  applicationController.reviewApplication,
 );
 
 export default router;

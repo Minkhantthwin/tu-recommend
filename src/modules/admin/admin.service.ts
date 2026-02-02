@@ -12,6 +12,7 @@ export async function getDashboardStats() {
     pendingApplications,
     approvedApplications,
     rejectedApplications,
+    topInterests,
   ] = await Promise.all([
     // User stats
     prisma.user.count(),
@@ -53,6 +54,24 @@ export async function getDashboardStats() {
     prisma.application.count({ where: { status: "SUBMITTED" } }), // Pending usually means submitted/under review
     prisma.application.count({ where: { status: "ACCEPTED" } }),
     prisma.application.count({ where: { status: "REJECTED" } }),
+
+    // Top Interests
+    prisma.interest.findMany({
+      take: 5,
+      orderBy: {
+        users: {
+          _count: "desc",
+        },
+      },
+      select: {
+        name: true,
+        _count: {
+          select: {
+            users: true,
+          },
+        },
+      },
+    }),
   ]);
 
   return {
@@ -76,5 +95,9 @@ export async function getDashboardStats() {
       approved: approvedApplications,
       rejected: rejectedApplications,
     },
+    interests: topInterests.map((interest: any) => ({
+      name: interest.name,
+      count: interest._count.users,
+    })),
   };
 }

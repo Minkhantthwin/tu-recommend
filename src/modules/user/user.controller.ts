@@ -9,7 +9,7 @@ import { asyncHandler } from "../../common/utils/async-handler";
 
 // User Controllers
 export const getUsers = asyncHandler(async (req: Request, res: Response) => {
-  const users = await userService.getAllUsers();
+  const users = await userService.getAllUsers(req.query);
   return sendSuccess(res, users);
 });
 

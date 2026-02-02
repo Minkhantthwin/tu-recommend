@@ -369,6 +369,6 @@ router.get(
  *       403:
  *         description: Forbidden - Admin access required
  */
-router.delete("/:key(*)", authenticate, adminOnly, uploadController.deleteFile);
+router.delete("/:key(*)", authenticate, uploadController.deleteFile);
 
 export default router;

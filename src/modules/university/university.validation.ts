@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { Degree, ProgramStatus } from "@prisma/client";
 
 // University validation schemas
 export const createUniversitySchema = z.object({
@@ -21,6 +22,8 @@ export const createProgramSchema = z.object({
   nameMyanmar: z.string().optional(),
   code: z.string().optional(),
   description: z.string().optional(),
+  degree: z.nativeEnum(Degree).optional(),
+  status: z.nativeEnum(ProgramStatus).optional(),
   minScore: z
     .number()
     .int()
@@ -34,6 +37,8 @@ export const updateProgramSchema = z.object({
   nameMyanmar: z.string().optional(),
   code: z.string().optional(),
   description: z.string().optional(),
+  degree: z.nativeEnum(Degree).optional(),
+  status: z.nativeEnum(ProgramStatus).optional(),
   minScore: z
     .number()
     .int()
@@ -68,6 +73,7 @@ export const universityQuerySchema = z.object({
 
 export const programQuerySchema = z.object({
   search: z.string().optional(),
+  region: z.string().optional(),
   universityId: z.coerce.number().int().positive().optional(),
   minScore: z.coerce.number().int().min(0).optional(),
   maxScore: z.coerce.number().int().max(600).optional(),

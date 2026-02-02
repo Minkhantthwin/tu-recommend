@@ -17,7 +17,8 @@
     "docker:stop": "./scripts/docker-stop.sh"
   },
   "prisma": {
-    "seed": "ts-node src/prisma/seed.ts"
+    "seed": "ts-node src/prisma/seed.ts",
+    "schema": "src/prisma/schema.prisma"
   },
   "keywords": [
     "express",

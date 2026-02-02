@@ -124,6 +124,7 @@ export async function getAllPrograms(query: ProgramQueryDto) {
     universityId,
     minScore,
     maxScore,
+    region,
     page = 1,
     limit = 10,
   } = query;
@@ -143,6 +144,10 @@ export async function getAllPrograms(query: ProgramQueryDto) {
 
   if (universityId) {
     where.universityId = universityId;
+  }
+
+  if (region) {
+    where.university = { region };
   }
 
   if (minScore !== undefined) {
@@ -221,24 +226,18 @@ export async function getProgramsByUniversity(universityId: number) {
 }
 
 export async function createProgram(data: CreateProgramDto) {
-  const university = await prisma.university.findUnique({
-    where: { id: data.universityId },
-  });
-
-  if (!university) {
-    throw ApiError.notFound("University not found");
-  }
-
+  const { requirements, ...programData } = data;
   return prisma.program.create({
-    data,
+    data: {
+      ...programData,
+      requirements: requirements
+        ? {
+            create: requirements,
+          }
+        : undefined,
+    },
     include: {
-      university: {
-        select: {
-          id: true,
-          name: true,
-          nameMyanmar: true,
-        },
-      },
+      requirements: true,
     },
   });
 }
@@ -250,19 +249,38 @@ export async function updateProgram(id: number, data: UpdateProgramDto) {
     throw ApiError.notFound("Program not found");
   }
 
-  return prisma.program.update({
+  const { requirements, ...programData } = data;
+
+  // Update program basic info
+  await prisma.program.update({
     where: { id },
-    data,
-    include: {
-      university: {
-        select: {
-          id: true,
-          name: true,
-          nameMyanmar: true,
+    data: programData,
+  });
+
+  // Handle requirements if provided
+  if (requirements) {
+    const existingReq = await prisma.programRequirement.findFirst({
+      where: { programId: id },
+    });
+
+    if (existingReq) {
+      await prisma.programRequirement.update({
+        where: { id: existingReq.id },
+        data: requirements,
+      });
+    } else {
+      await prisma.programRequirement.create({
+        data: {
+          ...requirements,
+          programId: id,
         },
-      },
-      requirements: true,
-    },
+      });
+    }
+  }
+
+  return prisma.program.findUnique({
+    where: { id },
+    include: { requirements: true },
   });
 }
 

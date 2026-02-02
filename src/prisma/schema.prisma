@@ -40,6 +40,18 @@ enum UserRole {
   ADMIN
 }
 
+enum Degree {
+  BACHELOR
+  MASTER
+  DIPLOMA
+}
+
+enum ProgramStatus {
+  ACTIVE
+  INACTIVE
+  SUSPENDED
+}
+
 // User account for authentication
 model User {
   id        String   @id @default(uuid())
@@ -182,8 +194,14 @@ model Program {
   code        String? // Program code (e.g., EC, EP, ME)
   description String?
 
+  degree       Degree        @default(BACHELOR) // ဘွဲ့အမျိုးအစား
+  status       ProgramStatus @default(ACTIVE) // အခြေအနေ
+
   minScore Int
   quota    Int? // လက်ခံဦးရေ
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   university       University           @relation(fields: [universityId], references: [id])
   requirements     ProgramRequirement[]

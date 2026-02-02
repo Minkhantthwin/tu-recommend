@@ -10,7 +10,7 @@ const router = Router();
 
 /**
  * @swagger
- * /api/recommendations/eligible-programs:
+ * /api/recommendations/eligible:
  *   get:
  *     tags: [Recommendations]
  *     summary: Get eligible programs for current user
@@ -23,6 +23,28 @@ const router = Router();
  *         schema:
  *           type: string
  *         description: Filter by university region (e.g., Yangon, Mandalay)
+ *       - in: query
+ *         name: search
+ *         schema:
+ *           type: string
+ *         description: Search by program name or code
+ *       - in: query
+ *         name: universityId
+ *         schema:
+ *           type: integer
+ *         description: Filter by university ID
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           default: 1
+ *         description: Page number
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           default: 10
+ *         description: Number of items per page
  *     responses:
  *       200:
  *         description: Eligible programs retrieved successfully
@@ -38,19 +60,28 @@ const router = Router();
  *                   properties:
  *                     matriculation:
  *                       $ref: '#/components/schemas/MatriculationResult'
- *                     eligiblePrograms:
+ *                     data:
  *                       type: array
  *                       items:
  *                         $ref: '#/components/schemas/ProgramWithUniversity'
- *                     totalEligible:
- *                       type: integer
+ *                     pagination:
+ *                       type: object
+ *                       properties:
+ *                         page:
+ *                           type: integer
+ *                         limit:
+ *                           type: integer
+ *                         total:
+ *                           type: integer
+ *                         totalPages:
+ *                           type: integer
  *       400:
  *         description: Matriculation results not found
  *       401:
  *         description: Unauthorized
  */
 router.get(
-  "/recommendations/eligible-programs",
+  "/recommendations/eligible",
   authenticate,
   recommendationController.getEligiblePrograms,
 );
@@ -85,14 +116,10 @@ router.get(
  *                   type: object
  *                   properties:
  *                     matriculation:
- *                       $ref: '#/components/schemas/MatriculationResult'
- *                     eligiblePrograms:
- *                       type: array
- *                       items:
- *                         $ref: '#/components/schemas/ProgramWithUniversity'
- *                     totalEligible:
- *                       type: integer
- *                     recommendedPrograms:
+                      $ref: '#/components/schemas/MatriculationResult'
+                    totalEligible:
+                      type: integer
+                    recommendedPrograms:
  *                       type: array
  *                       items:
  *                         allOf:
