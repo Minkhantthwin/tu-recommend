@@ -1,14 +1,16 @@
-import { Gender, Religion, MaritalStatus } from "@prisma/client";
+import { Gender, Religion, MaritalStatus, UserRole } from "@prisma/client";
 
 // User DTOs
 export interface CreateUserDto {
   email: string;
   password: string;
+  role?: UserRole;
 }
 
 export interface UpdateUserDto {
   email?: string;
   password?: string;
+  role?: UserRole;
 }
 
 // User Profile DTOs
@@ -65,6 +67,7 @@ export interface UpdateUserProfileDto extends Partial<CreateUserProfileDto> {}
 export interface UserResponse {
   id: string;
   email: string;
+  role: UserRole;
   createdAt: Date;
   updatedAt: Date;
 }
