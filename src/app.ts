@@ -25,8 +25,56 @@ import adminRoutes from "./modules/admin/admin.routes";
 const app = express();
 
 // Middleware
-app.use(helmet());
-app.use(cors());
+// Configure helmet with CSP that allows your domains
+app.use(
+  helmet({
+    contentSecurityPolicy: {
+      directives: {
+        defaultSrc: ["'self'"],
+        connectSrc: [
+          "'self'",
+          "https://api.tu-recommend.online",
+          "https://storage.tu-recommend.online",
+        ],
+        imgSrc: [
+          "'self'",
+          "data:",
+          "https://storage.tu-recommend.online",
+        ],
+        styleSrc: ["'self'", "'unsafe-inline'"],
+        scriptSrc: ["'self'", "'unsafe-inline'"],
+      },
+    },
+    crossOriginResourcePolicy: { policy: "cross-origin" },
+  })
+);
+
+// Configure CORS to allow your client domain
+const allowedOrigins = [
+  "http://localhost:3000",
+  "http://localhost:3001", 
+  "https://tu-recommend.online",
+  "https://www.tu-recommend.online",
+];
+
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      // Allow requests with no origin (mobile apps, Postman, etc.)
+      if (!origin) return callback(null, true);
+      
+      if (allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+  })
+);
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -83,7 +131,7 @@ app.use("/api", recommendationRoutes);
 app.use("/api", matriculationRoutes);
 app.use("/api", applicationRoutes);
 app.use("/api/admin", adminRoutes);
-// Add more module routes heree
+// Add more module routes here
 
 // Error handling
 app.use(notFoundHandler);
