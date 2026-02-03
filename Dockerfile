@@ -16,7 +16,7 @@ COPY src ./src
 # Generate Prisma Client
 RUN npx prisma generate
 
-# Build TypeScript code
+# Build TypeScript code (this will include seed.ts)
 RUN npm run build
 
 # Production stage
@@ -40,7 +40,7 @@ RUN npm ci --only=production
 COPY src/prisma ./src/prisma
 RUN npx prisma generate
 
-# Copy built files from builder
+# Copy built files from builder (includes dist/prisma/seed.js)
 COPY --from=builder /app/dist ./dist
 
 # Copy source files for Swagger documentation

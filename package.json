@@ -11,13 +11,14 @@
     "prisma:migrate": "prisma migrate dev",
     "prisma:studio": "prisma studio",
     "prisma:seed": "ts-node src/prisma/seed.ts",
+    "prisma:seed:prod": "node dist/prisma/seed.js",
     "prisma:refresh": "prisma migrate reset --force && ts-node src/prisma/seed.ts",
     "format": "prettier --write \"src/**/*.ts\"",
     "docker:start": "./scripts/docker-start.sh",
     "docker:stop": "./scripts/docker-stop.sh"
   },
   "prisma": {
-    "seed": "ts-node src/prisma/seed.ts",
+    "seed": "node src/prisma/seed.ts",
     "schema": "src/prisma/schema.prisma"
   },
   "keywords": [
