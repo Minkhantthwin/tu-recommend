@@ -10,6 +10,9 @@ export const minioClient = new Minio.Client({
 
 export const MINIO_BUCKET = process.env.MINIO_BUCKET || "tu-recommend";
 
+// Public URL for external access (set this in production)
+export const MINIO_PUBLIC_URL = process.env.MINIO_PUBLIC_URL;
+
 // Public read policy for the bucket
 const publicPolicy = {
   Version: "2012-10-17",

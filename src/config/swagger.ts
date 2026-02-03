@@ -1,5 +1,21 @@
 import swaggerJsdoc from "swagger-jsdoc";
 
+const isProduction = process.env.NODE_ENV === "production";
+
+const servers = isProduction
+  ? [
+      {
+        url: "https://api.tu-recommend.online",
+        description: "Production server",
+      },
+    ]
+  : [
+      {
+        url: "http://localhost:3000",
+        description: "Development server",
+      },
+    ];
+
 const options: swaggerJsdoc.Options = {
   definition: {
     openapi: "3.0.0",
@@ -12,12 +28,7 @@ const options: swaggerJsdoc.Options = {
         name: "API Support",
       },
     },
-    servers: [
-      {
-        url: "http://localhost:3000",
-        description: "Development server",
-      },
-    ],
+    servers,
     components: {
       securitySchemes: {
         bearerAuth: {

@@ -1,5 +1,5 @@
 import { v4 as uuidv4 } from "uuid";
-import { minioClient, MINIO_BUCKET } from "../../config/minio";
+import { minioClient, MINIO_BUCKET, MINIO_PUBLIC_URL } from "../../config/minio";
 import { ApiError } from "../../common/utils/api-error";
 import {
   UploadedFile,
@@ -25,6 +25,12 @@ function generateUniqueFilename(originalName: string): string {
  * Get the public URL for a file
  */
 export function getFileUrl(key: string): string {
+  // Use public URL if set (for production with reverse proxy)
+  if (MINIO_PUBLIC_URL) {
+    return `${MINIO_PUBLIC_URL}/${MINIO_BUCKET}/${key}`;
+  }
+
+  // Fallback for development
   const endpoint = process.env.MINIO_ENDPOINT || "localhost";
   const port = process.env.MINIO_PORT || "9000";
   const useSSL = process.env.MINIO_USE_SSL === "true";

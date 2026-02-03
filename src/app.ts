@@ -25,7 +25,7 @@ import adminRoutes from "./modules/admin/admin.routes";
 const app = express();
 
 // Middleware
-// Configure helmet with CSP that allows your domains
+// Configure helmet with CSP that allows Swagger UI and your domains
 app.use(
   helmet({
     contentSecurityPolicy: {
@@ -39,13 +39,16 @@ app.use(
         imgSrc: [
           "'self'",
           "data:",
+          "blob:",
           "https://storage.tu-recommend.online",
         ],
         styleSrc: ["'self'", "'unsafe-inline'"],
-        scriptSrc: ["'self'", "'unsafe-inline'"],
+        scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'"], // unsafe-eval needed for Swagger UI
+        workerSrc: ["'self'", "blob:"],
       },
     },
     crossOriginResourcePolicy: { policy: "cross-origin" },
+    crossOriginEmbedderPolicy: false, // Disable for Swagger UI
   })
 );
 
