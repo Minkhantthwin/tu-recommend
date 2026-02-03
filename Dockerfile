@@ -1,3 +1,24 @@
+# Builder stage
+FROM node:20-alpine AS builder
+
+WORKDIR /app
+
+# Copy package files
+COPY package*.json ./
+COPY tsconfig.json ./
+
+# Install all dependencies (including devDependencies for building)
+RUN npm ci
+
+# Copy source code and prisma schema
+COPY src ./src
+
+# Generate Prisma Client
+RUN npx prisma generate
+
+# Build TypeScript code
+RUN npm run build
+
 # Production stage
 FROM node:20-alpine AS production
 
@@ -9,8 +30,10 @@ RUN apk add --no-cache \
     openssl-dev \
     ca-certificates
 
-# Install only production dependencies
+# Copy package files
 COPY package*.json ./
+
+# Install only production dependencies
 RUN npm ci --only=production
 
 # Copy prisma schema and generate client
