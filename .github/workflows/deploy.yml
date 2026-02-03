@@ -59,7 +59,7 @@ jobs:
         with:
           host: ${{ secrets.VPS_HOST }}
           username: ${{ secrets.VPS_USERNAME }}
-          password: ${{ secrets.VPS_PASSWORD }}
+          key: ${{ secrets.VPS_SSH_KEY }}
           source: "docker-compose.prod.yml"
           target: "/opt/tu-recommend/"
           overwrite: true
@@ -69,14 +69,14 @@ jobs:
         with:
           host: ${{ secrets.VPS_HOST }}
           username: ${{ secrets.VPS_USERNAME }}
-          password: ${{ secrets.VPS_PASSWORD }}
+          key: ${{ secrets.VPS_SSH_KEY }}
           script: |
             cd /opt/tu-recommend
             
             # Login to GitHub Container Registry using PAT
             echo "${{ secrets.GH_PAT }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
             
-            # Pull latest image (lowercase image name required)
+            # Pull latest image
             docker pull ghcr.io/minkhantthwin/tu-recommend:latest
             
             # Stop and remove old API container
@@ -84,21 +84,22 @@ jobs:
             docker compose -f docker-compose.prod.yml rm -f api || true
             
             # Start all services with --no-build flag to prevent building
-            docker compose -f docker-compose.prod.yml up -d --no-build
+            docker compose -f docker-compose.prod.yml up -d --no-build --pull never
             
             # Wait for API to be ready
             sleep 15
             
             # Check if API container is running
-            docker compose -f docker-compose.prod.yml ps api
+            docker compose -f docker-compose.prod.yml ps
+            
+            # Show API logs
+            echo "📋 API Container Logs:"
+            docker compose -f docker-compose.prod.yml logs --tail=50 api
             
             # Run migrations
-            docker compose -f docker-compose.prod.yml exec -T api npx prisma migrate deploy || echo "Migration failed or already up to date"
+            docker compose -f docker-compose.prod.yml exec -T api npx prisma migrate deploy || echo "⚠️ Migration failed or already up to date"
             
             # Clean up old images
             docker image prune -f
             
             echo "✅ Deployment completed!"
-            
-            # Show logs for verification
-            docker compose -f docker-compose.prod.yml logs --tail=50 api
