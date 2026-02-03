@@ -1,7 +1,10 @@
- # Build stage
+# Build stage
 FROM node:20-alpine AS builder
 
 WORKDIR /app
+
+# Install OpenSSL for Prisma
+RUN apk add --no-cache openssl
 
 # Copy package files
 COPY package*.json ./
@@ -27,6 +30,12 @@ FROM node:20-alpine AS production
 
 WORKDIR /app
 
+# Install OpenSSL 1.1 and other required libraries for Prisma
+RUN apk add --no-cache \
+    openssl \
+    openssl-dev \
+    ca-certificates
+
 # Install only production dependencies
 COPY package*.json ./
 RUN npm ci --only=production
@@ -41,6 +50,9 @@ COPY --from=builder /app/dist ./dist
 # Create non-root user
 RUN addgroup -g 1001 -S nodejs && \
     adduser -S nodejs -u 1001
+
+# Change ownership of the app directory
+RUN chown -R nodejs:nodejs /app
 
 USER nodejs
 
