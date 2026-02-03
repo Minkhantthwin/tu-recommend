@@ -115,6 +115,13 @@ async function seedUniversities() {
       location: "Hpa-An",
       region: "Kayin",
     },
+    {
+      name: "West Yangon Technological University",
+      nameMyanmar: "အနောက်ရန်ကုန် နည်းပညာတက္ကသိုလ်",
+      code: "TU-West-Yangon",
+      location: "Hlaingthaya Township",
+      region: "Yangon",
+    },
   ];
 
   const createdUniversities = [];
