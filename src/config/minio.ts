@@ -30,16 +30,16 @@ export async function initializeMinioBucket(): Promise<void> {
     if (!exists) {
       await minioClient.makeBucket(MINIO_BUCKET, "us-east-1");
       console.log(`📦 MinIO bucket '${MINIO_BUCKET}' created`);
-
-      // Set public read policy
-      await minioClient.setBucketPolicy(
-        MINIO_BUCKET,
-        JSON.stringify(publicPolicy),
-      );
-      console.log(`🔓 MinIO bucket '${MINIO_BUCKET}' set to public read`);
     } else {
       console.log(`📦 MinIO bucket '${MINIO_BUCKET}' already exists`);
     }
+
+    // Always set public read policy
+    await minioClient.setBucketPolicy(
+      MINIO_BUCKET,
+      JSON.stringify(publicPolicy),
+    );
+    console.log(`🔓 MinIO bucket '${MINIO_BUCKET}' set to public read`);
   } catch (error) {
     console.error("❌ MinIO initialization error:", error);
     throw error;
