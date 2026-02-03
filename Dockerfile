@@ -13,8 +13,8 @@ RUN npm ci
 # Copy source code and prisma schema
 COPY src ./src
 
-# Generate Prisma Client
-RUN npx prisma generate
+# Generate Prisma Client (specify schema location)
+RUN npx prisma generate --schema=./src/prisma/schema.prisma
 
 # Build TypeScript code (this will include seed.ts)
 RUN npm run build
@@ -38,7 +38,7 @@ RUN npm ci --only=production
 
 # Copy prisma schema and generate client
 COPY src/prisma ./src/prisma
-RUN npx prisma generate
+RUN npx prisma generate --schema=./src/prisma/schema.prisma
 
 # Copy built files from builder (includes dist/prisma/seed.js)
 COPY --from=builder /app/dist ./dist

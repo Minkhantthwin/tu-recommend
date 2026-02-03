@@ -60,6 +60,11 @@ const allowedOrigins = process.env.ALLOWED_ORIGINS
       "http://localhost:3001",
     ];
 
+// Add the API domain itself for Swagger UI
+if (process.env.NODE_ENV === "production") {
+  allowedOrigins.push("https://api.tu-recommend.online");
+}
+
 app.use(
   cors({
     origin: (origin, callback) => {
@@ -69,6 +74,8 @@ app.use(
       if (allowedOrigins.includes(origin)) {
         callback(null, true);
       } else {
+        console.log(`❌ CORS blocked origin: ${origin}`);
+        console.log(`✅ Allowed origins:`, allowedOrigins);
         callback(new Error("Not allowed by CORS"));
       }
     },
