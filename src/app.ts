@@ -83,7 +83,7 @@ app.use("/api", recommendationRoutes);
 app.use("/api", matriculationRoutes);
 app.use("/api", applicationRoutes);
 app.use("/api/admin", adminRoutes);
-// Add more module routes hereew
+// Add more module routes here
 
 // Error handling
 app.use(notFoundHandler);
