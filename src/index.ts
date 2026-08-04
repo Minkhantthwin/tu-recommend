@@ -20,6 +20,7 @@ async function main() {
 
     app.listen(PORT, () => {
       console.log(`🚀 Server running on http://localhost:${PORT}`);
+      console.log(`📖 Swagger docs: http://localhost:${PORT}/api-docs`);
       console.log(`📚 Environment: ${process.env.NODE_ENV || "development"}`);
     });
   } catch (error) {

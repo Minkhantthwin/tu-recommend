@@ -33,7 +33,7 @@ src/
 ### 1. Install Dependencies
 
 ```bash
-npm install
+pnpm install
 ```
 
 ### 2. Setup Environment
@@ -45,7 +45,7 @@ cp .env.example .env
 ### 3. Start Docker Services
 
 ```bash
-npm run docker:start
+pnpm run docker:start
 # or
 ./scripts/docker-start.sh
 ```
@@ -59,14 +59,14 @@ This starts:
 ### 4. Setup Database
 
 ```bash
-npm run prisma:generate
-npm run prisma:migrate
+pnpm run prisma:generate
+pnpm run prisma:migrate
 ```
 
 ### 5. Run Development Server
 
 ```bash
-npm run dev
+pnpm run dev
 ```
 
 The server will start on http://localhost:3000
@@ -75,14 +75,16 @@ The server will start on http://localhost:3000
 
 | Script | Description |
 |--------|-------------|
-| `npm run dev` | Start development server with hot reload |
-| `npm run build` | Build TypeScript to JavaScript |
-| `npm run start` | Start production server |
-| `npm run prisma:generate` | Generate Prisma client |
-| `npm run prisma:migrate` | Run database migrations |
-| `npm run prisma:studio` | Open Prisma Studio |
-| `npm run docker:start` | Start Docker containers |
-| `npm run docker:stop` | Stop Docker containers |
+| `pnpm run dev` | Start development server with hot reload |
+| `pnpm run build` | Build TypeScript to JavaScript |
+| `pnpm run start` | Start production server |
+| `pnpm run prisma:generate` | Generate Prisma client |
+| `pnpm run prisma:migrate` | Run database migrations |
+| `pnpm run prisma:studio` | Open Prisma Studio |
+| `pnpm run docker:start` | Start Docker containers |
+| `pnpm run docker:stop` | Stop Docker containers |
+| `pnpm run deps:check` | Audit for vulnerabilities and list outdated/deprecated packages |
+| `pnpm run deps:fix` | Same as above, and interactively update outdated packages |
 
 ## API Endpoints
 

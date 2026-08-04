@@ -16,5 +16,5 @@ docker compose down
 echo ""
 echo "✅ All containers stopped successfully!"
 echo ""
-echo "💡 Run 'npm run docker:start' to start containers again"
+echo "💡 Run 'pnpm run docker:start' to start containers again"
 echo "💡 Run 'docker compose down -v' to also remove volumes (data will be lost)"

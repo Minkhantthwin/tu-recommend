@@ -116,10 +116,10 @@ router.get(
  *                   type: object
  *                   properties:
  *                     matriculation:
-                      $ref: '#/components/schemas/MatriculationResult'
-                    totalEligible:
-                      type: integer
-                    recommendedPrograms:
+ *                       $ref: '#/components/schemas/MatriculationResult'
+ *                     totalEligible:
+ *                       type: integer
+ *                     recommendedPrograms:
  *                       type: array
  *                       items:
  *                         allOf:
