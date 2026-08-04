@@ -35,7 +35,7 @@ export const updateInterest = asyncHandler(
   async (req: Request, res: Response) => {
     const id = parseInt(req.params.id);
     const interest = await interestService.updateInterest(id, req.body);
-    return sendSuccess(res, interest, 204);
+    return sendSuccess(res, interest);
   },
 );
 
@@ -72,7 +72,7 @@ export const addMyInterests = asyncHandler(
       userId,
       req.body,
     );
-    return sendSuccess(res, interests, 204);
+    return sendSuccess(res, interests);
   },
 );
 
@@ -92,6 +92,6 @@ export const replaceMyInterests = asyncHandler(
       userId,
       req.body.interestIds,
     );
-    return sendSuccess(res, interests, 204);
+    return sendSuccess(res, interests);
   },
 );

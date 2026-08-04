@@ -574,7 +574,7 @@ router.get(
   "/admin/applications/:id",
   authenticate,
   adminOnly,
-  validate(applicationIdSchema),
+  validate(applicationIdSchema, "params"),
   applicationController.getApplicationByIdAdmin,
 );
 

@@ -1,3 +1,8 @@
+import {
+  MatriculationResult,
+  Program,
+  ProgramRequirement,
+} from "@prisma/client";
 import { prisma } from "../../config/database";
 import { ApiError } from "../../common/utils/api-error";
 
@@ -45,7 +50,7 @@ export async function getEligiblePrograms(
   }
 
   // Build program query
-  const programWhere: any = {};
+  const programWhere: any = { status: "ACTIVE" };
   if (region) {
     programWhere.university = { ...programWhere.university, region };
   }
@@ -74,52 +79,9 @@ export async function getEligiblePrograms(
   });
 
   // Filter eligible programs
-  const eligiblePrograms = programs.filter((program) => {
-    // Check minimum total score
-    if (matriculation.totalScore < program.minScore) {
-      return false;
-    }
-
-    // Check individual subject requirements
-    for (const requirement of program.requirements) {
-      if (requirement.myanmar && matriculation.myanmar < requirement.myanmar) {
-        return false;
-      }
-      if (requirement.english && matriculation.english < requirement.english) {
-        return false;
-      }
-      if (
-        requirement.mathematics &&
-        matriculation.mathematics < requirement.mathematics
-      ) {
-        return false;
-      }
-      if (requirement.physics && matriculation.physics < requirement.physics) {
-        return false;
-      }
-      if (
-        requirement.chemistry &&
-        matriculation.chemistry < requirement.chemistry
-      ) {
-        return false;
-      }
-      if (
-        requirement.biology &&
-        matriculation.biology &&
-        matriculation.biology < requirement.biology
-      ) {
-        return false;
-      }
-      if (
-        requirement.minTotalScore &&
-        matriculation.totalScore < requirement.minTotalScore
-      ) {
-        return false;
-      }
-    }
-
-    return true;
-  });
+  const eligiblePrograms = programs.filter((program) =>
+    isProgramEligible(matriculation, program),
+  );
 
   // Calculate match score for each eligible program
   const programsWithScore = eligiblePrograms.map((program) => {
@@ -170,6 +132,7 @@ export async function getRecommendedPrograms(
 
   // Get all programs with requirements
   const programs = await prisma.program.findMany({
+    where: { status: "ACTIVE" },
     include: {
       university: true,
       requirements: true,
@@ -178,49 +141,9 @@ export async function getRecommendedPrograms(
   });
 
   // Filter eligible programs and calculate scores
-  const eligiblePrograms = programs.filter((program) => {
-    if (matriculation.totalScore < program.minScore) {
-      return false;
-    }
-
-    for (const requirement of program.requirements) {
-      if (requirement.myanmar && matriculation.myanmar < requirement.myanmar) {
-        return false;
-      }
-      if (requirement.english && matriculation.english < requirement.english) {
-        return false;
-      }
-      if (
-        requirement.mathematics &&
-        matriculation.mathematics < requirement.mathematics
-      ) {
-        return false;
-      }
-      if (requirement.physics && matriculation.physics < requirement.physics) {
-        return false;
-      }
-      if (
-        requirement.chemistry &&
-        matriculation.chemistry < requirement.chemistry
-      ) {
-        return false;
-      }
-      if (
-        requirement.biology &&
-        matriculation.biology &&
-        matriculation.biology < requirement.biology
-      ) {
-        return false;
-      }
-      if (
-        requirement.minTotalScore &&
-        matriculation.totalScore < requirement.minTotalScore
-      ) {
-        return false;
-      }
-    }
-    return true;
-  });
+  const eligiblePrograms = programs.filter((program) =>
+    isProgramEligible(matriculation, program),
+  );
 
   // Get user interest names
   const userInterestNames = userInterests.map((ui) => ui.interest.name);
@@ -309,7 +232,7 @@ export async function comparePrograms(userId: string, programIds: number[]) {
 
   // Calculate eligibility and match score for each program
   const comparisonResults = programs.map((program) => {
-    const isEligible = checkEligibility(matriculation, program);
+    const isEligible = isProgramEligible(matriculation, program);
     const matchScore = isEligible
       ? calculateMatchScore(matriculation, program)
       : 0;
@@ -407,42 +330,59 @@ export async function getTopPrograms(userId: string, limit: number = 5) {
 
 // ==================== Helper Functions ====================
 
-function checkEligibility(matriculation: any, program: any): boolean {
-  if (matriculation.totalScore < program.minScore) {
+export function isProgramEligible(
+  matriculation: MatriculationResult,
+  program: Pick<Program, "minScore" | "status"> & {
+    requirements: ProgramRequirement[];
+  },
+): boolean {
+  if (
+    program.status !== "ACTIVE" ||
+    matriculation.totalScore < program.minScore
+  ) {
     return false;
   }
 
   for (const requirement of program.requirements) {
-    if (requirement.myanmar && matriculation.myanmar < requirement.myanmar) {
-      return false;
-    }
-    if (requirement.english && matriculation.english < requirement.english) {
+    if (
+      requirement.myanmar !== null &&
+      matriculation.myanmar < requirement.myanmar
+    ) {
       return false;
     }
     if (
-      requirement.mathematics &&
+      requirement.english !== null &&
+      matriculation.english < requirement.english
+    ) {
+      return false;
+    }
+    if (
+      requirement.mathematics !== null &&
       matriculation.mathematics < requirement.mathematics
     ) {
       return false;
     }
-    if (requirement.physics && matriculation.physics < requirement.physics) {
+    if (
+      requirement.physics !== null &&
+      matriculation.physics < requirement.physics
+    ) {
       return false;
     }
     if (
-      requirement.chemistry &&
+      requirement.chemistry !== null &&
       matriculation.chemistry < requirement.chemistry
     ) {
       return false;
     }
     if (
-      requirement.biology &&
-      matriculation.biology &&
-      matriculation.biology < requirement.biology
+      requirement.biology !== null &&
+      (matriculation.biology === null ||
+        matriculation.biology < requirement.biology)
     ) {
       return false;
     }
     if (
-      requirement.minTotalScore &&
+      requirement.minTotalScore !== null &&
       matriculation.totalScore < requirement.minTotalScore
     ) {
       return false;

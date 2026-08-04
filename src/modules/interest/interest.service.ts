@@ -286,20 +286,12 @@ export async function replaceUserInterests(
     }
   }
 
-  // Delete all existing user interests
-  await prisma.userInterest.deleteMany({
-    where: { userId },
-  });
-
-  // Create new user interests
-  if (interestIds.length > 0) {
-    await prisma.userInterest.createMany({
-      data: interestIds.map((interestId) => ({
-        userId,
-        interestId,
-      })),
-    });
-  }
+  await prisma.$transaction([
+    prisma.userInterest.deleteMany({ where: { userId } }),
+    prisma.userInterest.createMany({
+      data: interestIds.map((interestId) => ({ userId, interestId })),
+    }),
+  ]);
 
   // Return all user interests
   return getUserInterests(userId);

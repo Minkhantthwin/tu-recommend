@@ -1,41 +1,62 @@
 import { z } from "zod";
 
-export const createApplicationSchema = z.object({
-  firstChoiceId: z
-    .number()
-    .int()
-    .positive("First choice program ID must be a positive integer"),
-  secondChoiceId: z
-    .number()
-    .int()
-    .positive("Second choice program ID must be a positive integer")
-    .optional(),
-  thirdChoiceId: z
-    .number()
-    .int()
-    .positive("Third choice program ID must be a positive integer")
-    .optional(),
-});
+const distinctChoices = <
+  T extends {
+    firstChoiceId?: number;
+    secondChoiceId?: number | null;
+    thirdChoiceId?: number | null;
+  },
+>(
+  choices: T,
+) => {
+  const ids = [
+    choices.firstChoiceId,
+    choices.secondChoiceId,
+    choices.thirdChoiceId,
+  ].filter((id): id is number => id != null);
+  return new Set(ids).size === ids.length;
+};
 
-export const updateApplicationSchema = z.object({
-  firstChoiceId: z
-    .number()
-    .int()
-    .positive("First choice program ID must be a positive integer")
-    .optional(),
-  secondChoiceId: z
-    .number()
-    .int()
-    .positive("Second choice program ID must be a positive integer")
-    .nullable()
-    .optional(),
-  thirdChoiceId: z
-    .number()
-    .int()
-    .positive("Third choice program ID must be a positive integer")
-    .nullable()
-    .optional(),
-});
+export const createApplicationSchema = z
+  .object({
+    firstChoiceId: z
+      .number()
+      .int()
+      .positive("First choice program ID must be a positive integer"),
+    secondChoiceId: z
+      .number()
+      .int()
+      .positive("Second choice program ID must be a positive integer")
+      .optional(),
+    thirdChoiceId: z
+      .number()
+      .int()
+      .positive("Third choice program ID must be a positive integer")
+      .optional(),
+  })
+  .refine(distinctChoices, { message: "Program choices must be unique" });
+
+export const updateApplicationSchema = z
+  .object({
+    firstChoiceId: z
+      .number()
+      .int()
+      .positive("First choice program ID must be a positive integer")
+      .optional(),
+    secondChoiceId: z
+      .number()
+      .int()
+      .positive("Second choice program ID must be a positive integer")
+      .nullable()
+      .optional(),
+    thirdChoiceId: z
+      .number()
+      .int()
+      .positive("Third choice program ID must be a positive integer")
+      .nullable()
+      .optional(),
+  })
+  .refine(distinctChoices, { message: "Program choices must be unique" });
 
 export const submitApplicationSchema = z.object({
   declarationAccepted: z.literal(true, {

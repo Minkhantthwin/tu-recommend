@@ -28,7 +28,10 @@ export const addMultipleUserInterestsSchema = z.object({
   interestIds: z
     .array(z.number().int().positive("Interest ID must be a positive integer"))
     .min(1, "At least one interest must be provided")
-    .max(20, "Cannot add more than 20 interests at once"),
+    .max(20, "Cannot add more than 20 interests at once")
+    .refine((ids) => new Set(ids).size === ids.length, {
+      message: "Interest IDs must be unique",
+    }),
 });
 
 export const removeUserInterestSchema = z.object({
@@ -36,4 +39,12 @@ export const removeUserInterestSchema = z.object({
     .number()
     .int()
     .positive("Interest ID must be a positive integer"),
+});
+
+export const interestIdSchema = z.object({
+  id: z.coerce.number().int().positive("Interest ID must be positive"),
+});
+
+export const userInterestIdSchema = z.object({
+  interestId: z.coerce.number().int().positive("Interest ID must be positive"),
 });

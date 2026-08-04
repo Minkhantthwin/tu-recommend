@@ -5,6 +5,21 @@ import {
   UpdateMatriculationDto,
 } from "./matriculation.types";
 
+async function ensureMatriculationEditable(userId: string) {
+  const activeApplication = await prisma.application.findFirst({
+    where: {
+      userId,
+      status: { in: ["SUBMITTED", "UNDER_REVIEW", "ACCEPTED"] },
+    },
+    select: { id: true },
+  });
+  if (activeApplication) {
+    throw ApiError.badRequest(
+      "Matriculation results cannot be changed while an application is active",
+    );
+  }
+}
+
 // ==================== Matriculation Services ====================
 
 export async function getMatriculationByUserId(userId: string) {
@@ -68,6 +83,7 @@ export async function updateMatriculation(
   userId: string,
   data: UpdateMatriculationDto,
 ) {
+  await ensureMatriculationEditable(userId);
   // Check if matriculation exists
   const existing = await prisma.matriculationResult.findUnique({
     where: { userId },
@@ -105,6 +121,7 @@ export async function updateMatriculation(
 }
 
 export async function deleteMatriculation(userId: string) {
+  await ensureMatriculationEditable(userId);
   // Check if matriculation exists
   const existing = await prisma.matriculationResult.findUnique({
     where: { userId },

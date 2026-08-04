@@ -6,6 +6,8 @@ import {
   updateInterestSchema,
   addUserInterestSchema,
   addMultipleUserInterestsSchema,
+  interestIdSchema,
+  userInterestIdSchema,
 } from "./interest.validation";
 import { authenticate, adminOnly } from "../auth/auth.middleware";
 
@@ -66,7 +68,11 @@ router.get("/interests", interestController.getAllInterests);
  *       404:
  *         description: Interest not found
  */
-router.get("/interests/:id", interestController.getInterestById);
+router.get(
+  "/interests/:id",
+  validate(interestIdSchema, "params"),
+  interestController.getInterestById,
+);
 
 /**
  * @swagger
@@ -139,6 +145,7 @@ router.put(
   "/interests/:id",
   authenticate,
   adminOnly,
+  validate(interestIdSchema, "params"),
   validate(updateInterestSchema),
   interestController.updateInterest,
 );
@@ -175,6 +182,7 @@ router.delete(
   "/interests/:id",
   authenticate,
   adminOnly,
+  validate(interestIdSchema, "params"),
   interestController.deleteInterest,
 );
 
@@ -353,6 +361,7 @@ router.put(
 router.delete(
   "/me/interests/:interestId",
   authenticate,
+  validate(userInterestIdSchema, "params"),
   interestController.removeMyInterest,
 );
 

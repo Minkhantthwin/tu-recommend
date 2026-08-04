@@ -1,5 +1,6 @@
 import { prisma } from "../../config/database";
 import { ApiError } from "../../common/utils/api-error";
+import { isProgramEligible } from "../recommendation/recommendation.service";
 import {
   CreateApplicationDTO,
   UpdateApplicationDTO,
@@ -29,6 +30,35 @@ const applicationInclude = {
   thirdChoice: { include: programInclude },
   acceptedProgram: { include: programInclude },
 };
+
+async function validateProgramChoices(
+  matriculation: NonNullable<
+    Awaited<ReturnType<typeof prisma.matriculationResult.findUnique>>
+  >,
+  programIds: number[],
+) {
+  if (new Set(programIds).size !== programIds.length) {
+    throw ApiError.badRequest("Program choices must be unique");
+  }
+
+  const programs = await prisma.program.findMany({
+    where: { id: { in: programIds } },
+    include: { requirements: true },
+  });
+
+  if (programs.length !== programIds.length) {
+    throw ApiError.badRequest("One or more selected programs do not exist");
+  }
+
+  const ineligible = programs.find(
+    (program) => !isProgramEligible(matriculation, program),
+  );
+  if (ineligible) {
+    throw ApiError.badRequest(
+      `${ineligible.name} is inactive or does not match your matriculation results`,
+    );
+  }
+}
 
 // ==================== Application Services ====================
 
@@ -78,45 +108,7 @@ export async function createApplication(
     data.thirdChoiceId,
   ].filter(Boolean) as number[];
 
-  const programs = await prisma.program.findMany({
-    where: { id: { in: programIds } },
-    include: { requirements: true },
-  });
-
-  if (programs.length !== programIds.length) {
-    throw ApiError.badRequest("One or more selected programs do not exist");
-  }
-
-  // Check eligibility for each program
-  for (const program of programs) {
-    if (matriculation.totalScore < program.minScore) {
-      throw ApiError.badRequest(
-        `Your total score (${matriculation.totalScore}) is below the minimum score (${program.minScore}) required for ${program.name}`,
-      );
-    }
-
-    // Check individual subject requirements
-    for (const requirement of program.requirements) {
-      if (requirement.myanmar && matriculation.myanmar < requirement.myanmar) {
-        throw ApiError.badRequest(
-          `Your Myanmar score does not meet the requirement for ${program.name}`,
-        );
-      }
-      if (requirement.english && matriculation.english < requirement.english) {
-        throw ApiError.badRequest(
-          `Your English score does not meet the requirement for ${program.name}`,
-        );
-      }
-      if (
-        requirement.mathematics &&
-        matriculation.mathematics < requirement.mathematics
-      ) {
-        throw ApiError.badRequest(
-          `Your Mathematics score does not meet the requirement for ${program.name}`,
-        );
-      }
-    }
-  }
+  await validateProgramChoices(matriculation, programIds);
 
   // Create the application
   const application = await prisma.application.create({
@@ -212,35 +204,23 @@ export async function updateApplication(
     );
   }
 
-  // Verify program choices if provided
-  const programIds = [
-    data.firstChoiceId,
-    data.secondChoiceId,
-    data.thirdChoiceId,
-  ].filter(Boolean) as number[];
-
-  if (programIds.length > 0) {
-    const matriculation = await prisma.matriculationResult.findUnique({
-      where: { userId },
-    });
-
-    if (!matriculation) {
-      throw ApiError.badRequest("Matriculation results not found");
-    }
-
-    const programs = await prisma.program.findMany({
-      where: { id: { in: programIds } },
-      include: { requirements: true },
-    });
-
-    for (const program of programs) {
-      if (matriculation.totalScore < program.minScore) {
-        throw ApiError.badRequest(
-          `Your total score (${matriculation.totalScore}) is below the minimum score (${program.minScore}) required for ${program.name}`,
-        );
-      }
-    }
+  const matriculation = await prisma.matriculationResult.findUnique({
+    where: { userId },
+  });
+  if (!matriculation) {
+    throw ApiError.badRequest("Matriculation results not found");
   }
+
+  const programIds = [
+    data.firstChoiceId ?? application.firstChoiceId,
+    data.secondChoiceId === undefined
+      ? application.secondChoiceId
+      : data.secondChoiceId,
+    data.thirdChoiceId === undefined
+      ? application.thirdChoiceId
+      : data.thirdChoiceId,
+  ].filter((id): id is number => id !== null);
+  await validateProgramChoices(matriculation, programIds);
 
   const updatedApplication = await prisma.application.update({
     where: { id: applicationId },
@@ -356,16 +336,27 @@ export async function submitApplication(
     );
   }
 
+  const [profile, matriculation] = await Promise.all([
+    prisma.userProfile.findUnique({ where: { userId } }),
+    prisma.matriculationResult.findUnique({ where: { userId } }),
+  ]);
+  if (!profile || !matriculation) {
+    throw ApiError.badRequest(
+      "A complete profile and matriculation result are required before submission",
+    );
+  }
+  await validateProgramChoices(
+    matriculation,
+    [
+      application.firstChoiceId,
+      application.secondChoiceId,
+      application.thirdChoiceId,
+    ].filter((id): id is number => id !== null),
+  );
+
   // Generate application number
   const year = new Date().getFullYear();
-  const count = await prisma.application.count({
-    where: {
-      applicationNumber: {
-        startsWith: `TU-${year}`,
-      },
-    },
-  });
-  const applicationNumber = `TU-${year}-${String(count + 1).padStart(5, "0")}`;
+  const applicationNumber = `TU-${year}-${application.id}`;
 
   const submittedApplication = await prisma.application.update({
     where: { id: applicationId },
@@ -479,18 +470,28 @@ export async function getAllApplications(filters: ApplicationFilterDTO) {
   }
 
   if (programId) {
-    where.OR = [
-      { firstChoiceId: programId },
-      { secondChoiceId: programId },
-      { thirdChoiceId: programId },
+    where.AND = [
+      ...(where.AND || []),
+      {
+        OR: [
+          { firstChoiceId: programId },
+          { secondChoiceId: programId },
+          { thirdChoiceId: programId },
+        ],
+      },
     ];
   }
 
   if (universityId) {
-    where.OR = [
-      { firstChoice: { universityId } },
-      { secondChoice: { universityId } },
-      { thirdChoice: { universityId } },
+    where.AND = [
+      ...(where.AND || []),
+      {
+        OR: [
+          { firstChoice: { universityId } },
+          { secondChoice: { universityId } },
+          { thirdChoice: { universityId } },
+        ],
+      },
     ];
   }
 
@@ -571,7 +572,10 @@ export async function reviewApplication(
     throw ApiError.notFound("Application not found");
   }
 
-  if (application.status === "DRAFT" || application.status === "WITHDRAWN") {
+  if (
+    application.status !== "SUBMITTED" &&
+    application.status !== "UNDER_REVIEW"
+  ) {
     throw ApiError.badRequest(
       `Cannot review an application with status: ${application.status}`,
     );
@@ -597,6 +601,25 @@ export async function reviewApplication(
         "Accepted program must be one of the applicant's choices",
       );
     }
+
+    // ponytail: this check is not race-proof; use a DB-backed seat reservation if concurrent reviews become common.
+    const program = await prisma.program.findUnique({
+      where: { id: data.acceptedProgramId },
+      select: {
+        status: true,
+        quota: true,
+        _count: { select: { acceptedPrograms: true } },
+      },
+    });
+    if (program?.status !== "ACTIVE") {
+      throw ApiError.badRequest("The accepted program is not active");
+    }
+    if (
+      program?.quota != null &&
+      program._count.acceptedPrograms >= program.quota
+    ) {
+      throw ApiError.badRequest("The accepted program has reached its quota");
+    }
   }
 
   // Validate rejection reason if status is REJECTED
@@ -610,11 +633,10 @@ export async function reviewApplication(
     where: { id: applicationId },
     data: {
       status: data.status,
-      ...(data.acceptedProgramId && {
-        acceptedProgramId: data.acceptedProgramId,
-      }),
+      acceptedProgramId:
+        data.status === "ACCEPTED" ? data.acceptedProgramId : null,
       ...(data.remarks && { remarks: data.remarks }),
-      ...(data.rejectionReason && { rejectionReason: data.rejectionReason }),
+      rejectionReason: data.status === "REJECTED" ? data.rejectionReason : null,
       reviewedAt: new Date(),
     },
     include: applicationInclude,

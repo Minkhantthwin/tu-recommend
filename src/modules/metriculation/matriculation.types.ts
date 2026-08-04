@@ -25,7 +25,7 @@ export interface UpdateMatriculationDto {
   mathematics?: number;
   physics?: number;
   chemistry?: number;
-  biology?: number;
+  biology?: number | null;
 }
 
 export interface MatriculationResponse {

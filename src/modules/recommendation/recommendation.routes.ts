@@ -1,7 +1,11 @@
 import { Router } from "express";
 import * as recommendationController from "./recommendation.controller";
 import { validate } from "../../common/middleware";
-import { programComparisonSchema } from "./recommendation.validation";
+import {
+  eligibleProgramsQuerySchema,
+  programComparisonSchema,
+  recommendationLimitSchema,
+} from "./recommendation.validation";
 import { authenticate } from "../auth/auth.middleware";
 
 const router = Router();
@@ -83,6 +87,7 @@ const router = Router();
 router.get(
   "/recommendations/eligible",
   authenticate,
+  validate(eligibleProgramsQuerySchema, "query"),
   recommendationController.getEligiblePrograms,
 );
 
@@ -142,6 +147,7 @@ router.get(
 router.get(
   "/recommendations/suggested",
   authenticate,
+  validate(recommendationLimitSchema, "query"),
   recommendationController.getRecommendedPrograms,
 );
 
@@ -195,6 +201,7 @@ router.get(
 router.get(
   "/recommendations/top",
   authenticate,
+  validate(recommendationLimitSchema, "query"),
   recommendationController.getTopPrograms,
 );
 
